@@ -8,6 +8,7 @@ import { getThreadSchema, handleGetThread } from "./tools/get-thread.js";
 import { listConversationsSchema, handleListConversations } from "./tools/list-conversations.js";
 import { markReadSchema, handleMarkRead } from "./tools/mark-read.js";
 import { handleWhoami } from "./tools/whoami.js";
+import { setChannelSchema, handleSetChannel } from "./tools/set-channel.js";
 
 const config = parseConfig();
 
@@ -15,7 +16,7 @@ const server = new McpServer(
   { name: "agent-messenger", version: "1.0.0" },
   {
     capabilities: { tools: {} },
-    instructions: `Agent messenger for inter-agent communication. You are ${config.agentId}. Use send_message to contact other agents, check_inbox to see messages addressed to you.`,
+    instructions: `Agent messenger for inter-agent communication. You are ${config.agentId}${config.channel ? ` on channel '${config.channel}'` : ""}. Use send_message to contact other agents, check_inbox to see messages addressed to you. If multiple agent pairs are active in this project, use set_channel to isolate conversations.`,
   }
 );
 
@@ -61,7 +62,14 @@ server.tool(
   handleMarkRead(config)
 );
 
-server.tool("whoami", "Get this agent's identity", handleWhoami(config));
+server.tool("whoami", "Get this agent's identity and current channel", handleWhoami(config));
+
+server.tool(
+  "set_channel",
+  "Join a channel to isolate messages when multiple agent pairs are active. Both agents must join the same channel.",
+  setChannelSchema,
+  handleSetChannel(config)
+);
 
 async function main() {
   const transport = new StdioServerTransport();

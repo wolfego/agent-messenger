@@ -64,6 +64,10 @@ function bdJson<T>(config: Config, args: string[]): T {
   return JSON.parse(raw) as T;
 }
 
+function channelLabel(config: Config): string | undefined {
+  return config.channel ? `channel:${config.channel}` : undefined;
+}
+
 export function createMessage(
   config: Config,
   params: {
@@ -77,6 +81,8 @@ export function createMessage(
 ): BeadsMessage {
   const labels = [`to:${params.to}`, `from:${config.agentId}`, "unread"];
   if (params.action) labels.push(`action:${params.action}`);
+  const ch = channelLabel(config);
+  if (ch) labels.push(ch);
 
   let body = params.body;
   if (params.contextFiles?.length) {
@@ -99,11 +105,15 @@ export function checkInbox(
   config: Config,
   includeRead = false
 ): BeadsMessage[] {
-  const labelFilter = includeRead ? `to:${config.agentId}` : `to:${config.agentId},unread`;
+  const labelParts = [`to:${config.agentId}`];
+  if (!includeRead) labelParts.push("unread");
+  const ch = channelLabel(config);
+  if (ch) labelParts.push(ch);
+
   const args = [
     "list",
     "--type", "message",
-    "--label", labelFilter,
+    "--label", labelParts.join(","),
     "--status", "open",
   ];
   return bdJson<BeadsMessage[]>(config, args);
@@ -123,6 +133,8 @@ export function replyToMessage(
   }
 
   const labels = [`to:${originalFrom}`, `from:${config.agentId}`, "unread"];
+  const originalChannel = original.labels?.find((l) => l.startsWith("channel:"));
+  if (originalChannel) labels.push(originalChannel);
 
   const args = [
     "create",
@@ -189,8 +201,11 @@ export function listConversations(
   config: Config,
   status: "open" | "closed" | "all" = "all"
 ): Conversation[] {
-  const labelFilter = `to:${config.agentId}`;
-  const args = ["list", "--type", "message", "--label", labelFilter];
+  const labelParts = [`to:${config.agentId}`];
+  const ch = channelLabel(config);
+  if (ch) labelParts.push(ch);
+
+  const args = ["list", "--type", "message", "--label", labelParts.join(",")];
   if (status !== "all") {
     args.push("--status", status);
   }

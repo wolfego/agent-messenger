@@ -7,7 +7,11 @@ export function handleWhoami(config: Config) {
         {
           type: "text" as const,
           text: JSON.stringify(
-            { agent_id: config.agentId, agent_name: config.agentName },
+            {
+              agent_id: config.agentId,
+              agent_name: config.agentName,
+              channel: config.channel ?? null,
+            },
             null,
             2
           ),
