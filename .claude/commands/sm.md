@@ -1,0 +1,1 @@
+Send a message to another agent using the `send_message` MCP tool. Ask the user who to send to (default: "cursor") and what the message should contain. Include a clear subject, the action the recipient should take, and any relevant context_files.

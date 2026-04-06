@@ -1,0 +1,1 @@
+Check your agent-messenger inbox using the `check_inbox` MCP tool. If there are unread messages, read each one, act on any that have an `action` field (review, brainstorm, implement, reply), and mark them read. If the inbox is empty, just say "No new messages."

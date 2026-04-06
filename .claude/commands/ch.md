@@ -1,0 +1,1 @@
+Set or change the messaging channel using the `set_channel` MCP tool. Ask the user which channel to join. Both agents must be on the same channel to see each other's messages. Use an empty string to clear the channel and see all messages.
