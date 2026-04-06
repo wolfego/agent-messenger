@@ -4,11 +4,13 @@ An MCP server that lets AI agents (Cursor, Claude Code) send messages to each ot
 
 ## Prerequisites
 
-| Dependency | Version | Install |
-|---|---|---|
-| Node.js | 18+ | https://nodejs.org |
-| Beads (`bd` CLI) | 1.0.0+ | `npm install -g @beads/bd` or [manual install](https://github.com/gastownhall/beads/releases) |
-| Dolt | 1.85.0+ | https://docs.dolthub.com/introduction/installation |
+
+| Dependency       | Version | Install                                                                                                  |
+| ---------------- | ------- | -------------------------------------------------------------------------------------------------------- |
+| Node.js          | 18+     | [https://nodejs.org](https://nodejs.org)                                                                 |
+| Beads (`bd` CLI) | 1.0.0+  | `npm install -g @beads/bd` or [manual install](https://github.com/gastownhall/beads/releases)            |
+| Dolt             | 1.85.0+ | [https://docs.dolthub.com/introduction/installation](https://docs.dolthub.com/introduction/installation) |
+
 
 > **Windows note:** The npm install for Beads may fail on Windows. Download `bd.exe` directly from [GitHub releases](https://github.com/gastownhall/beads/releases) and place it on your PATH.
 
@@ -70,30 +72,42 @@ Create `.mcp.json` in your project root:
 
 When CC starts, it will prompt you to accept the new MCP server.
 
-### 5. (Optional) Auto-polling
+### 5. (Optional) Auto-polling and shortcuts
 
-**Cursor:** Copy `.cursor/rules/agent-messenger.mdc` from this repo into your project's `.cursor/rules/`. This makes Cursor auto-check its inbox at the start of each conversation.
+**Cursor:** Copy `.cursor/rules/agent-messenger.mdc` from this repo into your project's `.cursor/rules/`. This makes Cursor auto-check its inbox at the start of each conversation and enables `#cm` / `#sm` / `#ch` / `#wi` shortcuts.
 
-**Claude Code:** Beads already installs a `SessionStart` hook that runs `bd prime`. CC will see messages when it starts a session.
+**Claude Code:** Copy the `.claude/commands/` folder from this repo into your project's `.claude/` directory. This enables `/cm` `/sm` `/ch` `/wi` slash commands. Beads also installs a `SessionStart` hook that runs `bd prime` for context at session start.
+
+### Shortcuts Reference
+
+| Action | Cursor | Claude Code |
+|---|---|---|
+| Check messages | `#cm` | `/cm` |
+| Send message | `#sm` | `/sm` |
+| Set channel | `#ch` | `/ch` |
+| Who am I | `#wi` | `/wi` |
 
 ## MCP Tools Reference
 
-| Tool | Description |
-|---|---|
-| `send_message` | Send a message to another agent (`to`, `subject`, `body`, `action`, `context_files`, `priority`) |
-| `check_inbox` | Check for unread messages (optional: `include_read`) |
-| `reply` | Reply to a message by ID (auto-threads via `replies_to`) |
-| `get_thread` | Get full conversation thread from any message ID in it |
-| `list_conversations` | List all conversations this agent is part of |
-| `mark_read` | Mark a message as read |
-| `whoami` | Show agent identity and current channel |
-| `set_channel` | Join a channel for multi-agent isolation |
+
+| Tool                 | Description                                                                                      |
+| -------------------- | ------------------------------------------------------------------------------------------------ |
+| `send_message`       | Send a message to another agent (`to`, `subject`, `body`, `action`, `context_files`, `priority`) |
+| `check_inbox`        | Check for unread messages (optional: `include_read`)                                             |
+| `reply`              | Reply to a message by ID (auto-threads via `replies_to`)                                         |
+| `get_thread`         | Get full conversation thread from any message ID in it                                           |
+| `list_conversations` | List all conversations this agent is part of                                                     |
+| `mark_read`          | Mark a message as read                                                                           |
+| `whoami`             | Show agent identity and current channel                                                          |
+| `set_channel`        | Join a channel for multi-agent isolation                                                         |
+
 
 ## Identity & Channels
 
 ### How routing works
 
 Each MCP server instance runs with an `--agent-id` (e.g., `cursor`, `cc`). Messages are routed using labels:
+
 - `to:cc` — addressed to the agent with ID `cc`
 - `from:cursor` — sent by the agent with ID `cursor`
 - `unread` — not yet read by the recipient
@@ -135,11 +149,11 @@ export AGENT_MESSENGER_ID=cc-design # macOS/Linux
 
 Cursor calls `send_message(to: "cc", subject: "Review design doc", body: "...", action: "review", context_files: ["docs/design.md"])`.
 
-**In CC terminal:** "check messages"
+**In CC terminal:** `/cm`
 
 CC calls `check_inbox()`, sees the message, reads the file, and calls `reply(message_id: "...", body: "Here's my review...")`.
 
-**In Cursor:** "check messages"
+**In Cursor:** `#cm`
 
 Cursor calls `check_inbox()`, reads the reply, and acts on it.
 
@@ -157,13 +171,13 @@ A full feature development cycle using agent-messenger to coordinate between age
 Cursor brainstorms, then calls `send_message(to: "cc", subject: "WebSocket brainstorm", body: "<brainstorm>", action: "brainstorm")`.
 
 ```
-[CC] User: "check messages"
+[CC] User: /cm
 ```
 
 CC reads the brainstorm, challenges assumptions, adds alternatives, and calls `reply(...)`.
 
 ```
-[Cursor] User: "check messages and synthesize both perspectives into a design"
+[Cursor] User: #cm — then "synthesize both perspectives into a design"
 ```
 
 #### Phase 2: Design & Spec
@@ -176,13 +190,13 @@ CC reads the brainstorm, challenges assumptions, adds alternatives, and calls `r
 Cursor writes the doc, then calls `send_message(to: "cc", ..., action: "review", context_files: ["docs/websocket-design.md"])`.
 
 ```
-[CC] User: "check messages"
+[CC] User: /cm
 ```
 
 CC reviews the design for edge cases, security concerns, and scalability. Replies with findings.
 
 ```
-[Cursor] User: "check messages, address the feedback, then write the spec"
+[Cursor] User: #cm — then "address the feedback and write the spec"
 ```
 
 #### Phase 3: Plan Review
@@ -193,7 +207,7 @@ CC reviews the design for edge cases, security concerns, and scalability. Replie
 ```
 
 ```
-[CC] User: "check messages"
+[CC] User: /cm
 ```
 
 CC reviews the plan for task ordering, missing dependencies, and estimates. Replies.
@@ -201,8 +215,7 @@ CC reviews the plan for task ordering, missing dependencies, and estimates. Repl
 #### Phase 4: Implementation
 
 ```
-[Cursor] User: "check messages, incorporate feedback, then begin implementing
-               the plan starting from step 1"
+[Cursor] User: #cm — then "incorporate feedback and begin implementing step 1"
 ```
 
 During implementation, if Cursor hits a blocker:
@@ -219,7 +232,7 @@ During implementation, if Cursor hits a blocker:
 ```
 
 ```
-[CC] User: "check messages"
+[CC] User: /cm
 ```
 
 CC reviews the code, replies with findings. Cursor addresses them.
@@ -261,11 +274,14 @@ If you see "driver: bad connection" errors, the Dolt server likely isn't running
 
 ## Troubleshooting
 
-| Problem | Fix |
-|---|---|
-| `bd` not found | Install Beads and ensure `bd` is on your PATH |
-| "driver: bad connection" | Run `bd dolt start` — the Dolt server isn't running |
-| "embedded Dolt requires CGO" | Use `bd init --server` instead of `bd init` (required on Windows) |
-| MCP not appearing in Cursor | Restart Cursor after adding `.cursor/mcp.json` |
-| Messages not routing | Check agent IDs match (`whoami`) and both agents are on the same channel |
-| Inbox shows other pair's messages | Use `set_channel` to isolate conversations |
+
+| Problem                           | Fix                                                                      |
+| --------------------------------- | ------------------------------------------------------------------------ |
+| `bd` not found                    | Install Beads and ensure `bd` is on your PATH                            |
+| "driver: bad connection"          | Run `bd dolt start` — the Dolt server isn't running                      |
+| "embedded Dolt requires CGO"      | Use `bd init --server` instead of `bd init` (required on Windows)        |
+| MCP not appearing in Cursor       | Restart Cursor after adding `.cursor/mcp.json`                           |
+| Messages not routing              | Check agent IDs match (`whoami`) and both agents are on the same channel |
+| Inbox shows other pair's messages | Use `set_channel` to isolate conversations                               |
+
+
