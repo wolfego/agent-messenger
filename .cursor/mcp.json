@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "agent-messenger": {
+      "command": "node",
+      "args": ["C:\\Users\\wolfe\\Dev\\agent-messenger\\dist\\index.js", "--agent-id", "cursor-opus"],
+      "transport": "stdio"
+    }
+  }
+}
