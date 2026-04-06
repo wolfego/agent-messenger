@@ -1,0 +1,35 @@
+{
+  "name": "agent-messenger",
+  "version": "1.0.0",
+  "description": "MCP server for AI agent-to-agent messaging, backed by Beads",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wolfego/agent-messenger.git"
+  },
+  "keywords": [
+    "mcp",
+    "ai-agents",
+    "messaging",
+    "beads"
+  ],
+  "author": "",
+  "license": "MIT",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/wolfego/agent-messenger/issues"
+  },
+  "homepage": "https://github.com/wolfego/agent-messenger#readme",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.2",
+    "typescript": "^6.0.2"
+  }
+}
