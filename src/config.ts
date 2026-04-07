@@ -26,6 +26,10 @@ export function parseConfig(): Config {
     }
   }
 
+  if (beadsDir && !beadsDir.endsWith(".beads")) {
+    beadsDir = resolve(beadsDir, ".beads");
+  }
+
   const agentName = agentId
     .split("-")
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))

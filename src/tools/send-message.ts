@@ -11,6 +11,8 @@ export const sendMessageSchema = {
   priority: z.enum(["normal", "urgent"]).optional().describe("Message priority (default: normal)"),
 };
 
+const KNOWN_AGENTS = ["cursor-opus", "claude-code", "cursor", "cc"];
+
 export function handleSendMessage(config: Config) {
   return (args: {
     to: string;
@@ -28,11 +30,21 @@ export function handleSendMessage(config: Config) {
       action: args.action,
       priority: args.priority,
     });
+
+    let warning: string | undefined;
+    if (!KNOWN_AGENTS.includes(args.to)) {
+      const suggestions = KNOWN_AGENTS.filter(a => a !== config.agentId);
+      warning = `Unknown agent ID '${args.to}'. Known agents: ${suggestions.join(", ")}. Message sent anyway — the recipient won't see it unless their --agent-id matches '${args.to}'.`;
+    }
+
+    const response: Record<string, unknown> = { message_id: result.id, status: "sent" };
+    if (warning) response["warning"] = warning;
+
     return {
       content: [
         {
           type: "text" as const,
-          text: JSON.stringify({ message_id: result.id, status: "sent" }, null, 2),
+          text: JSON.stringify(response, null, 2),
         },
       ],
     };

@@ -13,15 +13,16 @@ You have access to the `agent-messenger` MCP server for communicating with other
 At the **start of each new conversation** (your very first response), call `check_inbox` once.
 
 - If the inbox is empty, say nothing about it — proceed with the user's request normally.
-- If there are unread messages, summarize them briefly to the user (e.g. "You have a message from claude-code about X") and then act on any that have an `action` field (review, brainstorm, implement, reply). Mark them read after acting.
+- If there are unread messages, summarize them briefly to the user (e.g. "You have a message from claude-code about X") and act on any that have an `action` field (review, brainstorm, implement, reply). Messages are automatically marked read when fetched.
 - Do NOT check inbox on subsequent turns unless the user asks.
 
 ## Shortcuts
 
 The user may type these short commands instead of full sentences:
 
-- `#cm` — Check messages. Call `check_inbox`, act on any unread messages, mark them read. If empty, say "No new messages."
-- `#sm` — Send message. Ask the user who to send to (default: "cc") and what to say. Use `send_message`.
+- `#help` — Show this list of available commands.
+- `#cm` — Check messages. Call `check_inbox`, act on any unread messages. If empty, say "No new messages."
+- `#sm` — Send message. Ask the user who to send to (default: "claude-code") and what to say. Use `send_message`.
 - `#ch` — Set channel. Ask the user which channel to join. Call `set_channel`.
 - `#wi` — Who am I. Call `whoami` and report identity and channel.
 

@@ -2,8 +2,25 @@
 
 An MCP server that lets AI agents (Cursor, Claude Code) send messages to each other within a project, backed by [Beads](https://github.com/gastownhall/beads) for persistent storage.
 
-## Prerequisites
+## Automated Setup (Recommended)
 
+```bash
+npm install -g agent-messenger
+cd your-project
+agent-messenger init
+```
+
+This handles everything: Beads initialization, MCP config generation (with correct `--beads-dir`), Cursor rules, and Claude Code skills. Then restart Cursor and you're done.
+
+If something isn't working:
+
+```bash
+agent-messenger doctor
+```
+
+This checks prerequisites, configs, paths, and server connectivity — and tells you exactly what to fix.
+
+## Prerequisites
 
 | Dependency       | Version | Install                                                                                                  |
 | ---------------- | ------- | -------------------------------------------------------------------------------------------------------- |
@@ -11,23 +28,27 @@ An MCP server that lets AI agents (Cursor, Claude Code) send messages to each ot
 | Beads (`bd` CLI) | 1.0.0+  | `npm install -g @beads/bd` or [manual install](https://github.com/gastownhall/beads/releases)            |
 | Dolt             | 1.85.0+ | [https://docs.dolthub.com/introduction/installation](https://docs.dolthub.com/introduction/installation) |
 
+> **Windows note:** The npm install for Beads may fail on Windows. Download `bd.exe` directly from [GitHub releases](https://github.com/gastownhall/beads/releases) and place it on your PATH (e.g., `C:\Users\<you>\.local\bin`).
 
-> **Windows note:** The npm install for Beads may fail on Windows. Download `bd.exe` directly from [GitHub releases](https://github.com/gastownhall/beads/releases) and place it on your PATH.
+## Manual Setup
 
-## Installation
+If you prefer manual control or the installer doesn't fit your setup:
 
-### 1. Clone and build
+### 1. Install agent-messenger
+
+```bash
+npm install -g agent-messenger
+```
+
+Or clone and build from source:
 
 ```bash
 git clone https://github.com/wolfego/agent-messenger.git
 cd agent-messenger
-npm install
-npm run build
+npm install && npm run build
 ```
 
 ### 2. Initialize Beads in your project
-
-In the project where you want agents to communicate (not in agent-messenger itself):
 
 ```bash
 cd your-project
@@ -38,19 +59,21 @@ Add `.beads/` to your project's `.gitignore`.
 
 ### 3. Register in Cursor
 
-Create `.cursor/mcp.json` in your project:
+Create `.cursor/mcp.json` in your project. **Critical:** `--beads-dir` must point to the `.beads` directory, not the project root:
 
 ```json
 {
   "mcpServers": {
     "agent-messenger": {
       "command": "node",
-      "args": ["C:\\path\\to\\agent-messenger\\dist\\index.js", "--agent-id", "cursor"],
+      "args": ["/path/to/agent-messenger/dist/index.js", "--agent-id", "cursor-opus", "--beads-dir", "/path/to/your-project/.beads"],
       "transport": "stdio"
     }
   }
 }
 ```
+
+> **Fallback:** Cursor may not read project-level MCP configs if `.cursor/` is gitignored. Also add the entry to `~/.cursor/mcp.json` (user-level).
 
 Restart Cursor to pick up the MCP server.
 
@@ -63,7 +86,7 @@ Create `.mcp.json` in your project root:
   "mcpServers": {
     "agent-messenger": {
       "command": "node",
-      "args": ["C:\\path\\to\\agent-messenger\\dist\\index.js", "--agent-id", "cc"],
+      "args": ["/path/to/agent-messenger/dist/index.js", "--agent-id", "claude-code", "--beads-dir", "/path/to/your-project/.beads"],
       "transport": "stdio"
     }
   }
@@ -72,23 +95,22 @@ Create `.mcp.json` in your project root:
 
 When CC starts, it will prompt you to accept the new MCP server.
 
-### 5. (Optional) Auto-polling and shortcuts
+### 5. Install Cursor rule and CC skills
 
-**Cursor:** Copy `.cursor/rules/agent-messenger.mdc` from this repo into your project's `.cursor/rules/`. This makes Cursor auto-check its inbox at the start of each conversation and enables `#cm` / `#sm` / `#ch` / `#wi` shortcuts.
+**Cursor:** Copy `.cursor/rules/agent-messenger.mdc` from this repo into your project's `.cursor/rules/`.
 
-**Claude Code:** Copy the `.claude/commands/` folder from this repo into your project's `.claude/` directory. This enables `/cm` `/sm` `/ch` `/wi` slash commands. Beads also installs a `SessionStart` hook that runs `bd prime` for context at session start.
+**Claude Code:** Copy the `.claude/skills/` folder from this repo into your project's `.claude/` directory.
 
 ### Shortcuts Reference
 
-| Action | Cursor | Claude Code |
-|---|---|---|
-| Check messages | `#cm` | `/cm` |
-| Send message | `#sm` | `/sm` |
-| Set channel | `#ch` | `/ch` |
-| Who am I | `#wi` | `/wi` |
+| Action         | Cursor | Claude Code |
+| -------------- | ------ | ----------- |
+| Check messages | `#cm`  | `/cm`       |
+| Send message   | `#sm`  | `/sm`       |
+| Set channel    | `#ch`  | `/ch`       |
+| Who am I       | `#wi`  | `/wi`       |
 
 ## MCP Tools Reference
-
 
 | Tool                 | Description                                                                                      |
 | -------------------- | ------------------------------------------------------------------------------------------------ |
@@ -101,27 +123,26 @@ When CC starts, it will prompt you to accept the new MCP server.
 | `whoami`             | Show agent identity and current channel                                                          |
 | `set_channel`        | Join a channel for multi-agent isolation                                                         |
 
-
 ## Identity & Channels
 
 ### How routing works
 
-Each MCP server instance runs with an `--agent-id` (e.g., `cursor`, `cc`). Messages are routed using labels:
+Each MCP server instance runs with an `--agent-id` (e.g., `cursor-opus`, `claude-code`). Messages are routed using labels:
 
-- `to:cc` — addressed to the agent with ID `cc`
-- `from:cursor` — sent by the agent with ID `cursor`
+- `to:claude-code` — addressed to the agent with ID `claude-code`
+- `from:cursor-opus` — sent by the agent with ID `cursor-opus`
 - `unread` — not yet read by the recipient
 
 ### One pair of agents (simple case)
 
-If you only have one Cursor window and one CC terminal in a project, the default IDs (`cursor` and `cc`) are sufficient. No channels needed.
+If you only have one Cursor window and one CC terminal in a project, the default IDs (`cursor-opus` and `claude-code`) are sufficient. No channels needed.
 
 ### Multiple agent pairs in the same project
 
 If you have multiple Cursor windows or CC terminals open in the same project, use **channels** to prevent cross-talk:
 
-1. Tell Cursor window A: "set channel to design-review"
-2. Tell CC terminal A: "set channel to design-review"
+1. Tell Cursor window A: `#ch design-review`
+2. Tell CC terminal A: set channel to `design-review`
 3. Now only these two see each other's messages
 
 Other agent windows without a channel (or on a different channel) won't see those messages.
@@ -130,26 +151,19 @@ You can also set a channel at startup via `--channel`:
 
 ```json
 {
-  "args": ["...dist/index.js", "--agent-id", "cursor", "--channel", "design"]
+  "args": ["...dist/index.js", "--agent-id", "cursor-opus", "--channel", "design"]
 }
-```
-
-Or via environment variable (useful for CC terminals):
-
-```bash
-set AGENT_MESSENGER_ID=cc-design   # Windows
-export AGENT_MESSENGER_ID=cc-design # macOS/Linux
 ```
 
 ## Workflow Examples
 
 ### Basic: Send a message and get a reply
 
-**In Cursor:** "Send a message to cc asking it to review docs/design.md"
+**In Cursor:** "Send a message to claude-code asking it to review docs/design.md"
 
-Cursor calls `send_message(to: "cc", subject: "Review design doc", body: "...", action: "review", context_files: ["docs/design.md"])`.
+Cursor calls `send_message(to: "claude-code", subject: "Review design doc", body: "...", action: "review", context_files: ["docs/design.md"])`.
 
-**In CC terminal:** `/cm`
+**In CC terminal:** `/cm` (or "check your inbox using the check_inbox tool")
 
 CC calls `check_inbox()`, sees the message, reads the file, and calls `reply(message_id: "...", body: "Here's my review...")`.
 
@@ -168,7 +182,7 @@ A full feature development cycle using agent-messenger to coordinate between age
                Send your brainstorm to cc for challenge and counter-proposals."
 ```
 
-Cursor brainstorms, then calls `send_message(to: "cc", subject: "WebSocket brainstorm", body: "<brainstorm>", action: "brainstorm")`.
+Cursor brainstorms, then calls `send_message(to: "claude-code", ...)`.
 
 ```
 [CC] User: /cm
@@ -186,8 +200,6 @@ CC reads the brainstorm, challenges assumptions, adds alternatives, and calls `r
 [Cursor] User: "Write the design doc at docs/websocket-design.md, then send it
                to cc for architecture review"
 ```
-
-Cursor writes the doc, then calls `send_message(to: "cc", ..., action: "review", context_files: ["docs/websocket-design.md"])`.
 
 ```
 [CC] User: /cm
@@ -218,13 +230,6 @@ CC reviews the plan for task ordering, missing dependencies, and estimates. Repl
 [Cursor] User: #cm — then "incorporate feedback and begin implementing step 1"
 ```
 
-During implementation, if Cursor hits a blocker:
-
-```
-[Cursor] User: "send a message to cc describing this connection pooling issue
-               and ask for help"
-```
-
 #### Phase 5: Code Review
 
 ```
@@ -242,23 +247,16 @@ CC reviews the code, replies with findings. Cursor addresses them.
 For larger features, fan out tasks to multiple CC terminals:
 
 ```
-[Cursor] User: "set channel to impl-auth"
-[CC Terminal 1] User: "set channel to impl-auth"
+[Cursor] User: #ch impl-auth
+[CC Terminal 1] User: set channel to impl-auth
 ```
 
 ```
-[Cursor] User: "set channel to impl-ws"
-[CC Terminal 2] User: "set channel to impl-ws"
+[Cursor] User: #ch impl-ws
+[CC Terminal 2] User: set channel to impl-ws
 ```
 
-Now Cursor can switch channels to communicate with different implementers:
-
-```
-[Cursor] User: "set channel to impl-auth, send the auth middleware tasks"
-[Cursor] User: "set channel to impl-ws, send the WebSocket handler tasks"
-```
-
-Each CC terminal only sees messages on its channel.
+Now Cursor can switch channels to communicate with different implementers.
 
 ## Dolt Server Management
 
@@ -274,14 +272,15 @@ If you see "driver: bad connection" errors, the Dolt server likely isn't running
 
 ## Troubleshooting
 
+Run `agent-messenger doctor` first — it checks everything automatically.
 
-| Problem                           | Fix                                                                      |
-| --------------------------------- | ------------------------------------------------------------------------ |
-| `bd` not found                    | Install Beads and ensure `bd` is on your PATH                            |
-| "driver: bad connection"          | Run `bd dolt start` — the Dolt server isn't running                      |
-| "embedded Dolt requires CGO"      | Use `bd init --server` instead of `bd init` (required on Windows)        |
-| MCP not appearing in Cursor       | Restart Cursor after adding `.cursor/mcp.json`                           |
-| Messages not routing              | Check agent IDs match (`whoami`) and both agents are on the same channel |
-| Inbox shows other pair's messages | Use `set_channel` to isolate conversations                               |
-
+| Problem                           | Fix                                                                            |
+| --------------------------------- | ------------------------------------------------------------------------------ |
+| `bd` not found                    | Install Beads and ensure `bd` is on your PATH                                  |
+| "driver: bad connection"          | Run `bd dolt start` — the Dolt server isn't running                            |
+| "embedded Dolt requires CGO"      | Use `bd init --server` instead of `bd init` (required on Windows)              |
+| MCP not appearing in Cursor       | Restart Cursor; also add entry to `~/.cursor/mcp.json` as fallback             |
+| Messages not routing              | Check agent IDs match (`whoami`); run `agent-messenger doctor` to verify paths |
+| Inbox shows other pair's messages | Use `set_channel` to isolate conversations                                     |
+| `--beads-dir` errors              | Must point to `.beads/` directory, not the project root                        |
 

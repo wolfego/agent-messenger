@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "MCP server for AI agent-to-agent messaging, backed by Beads",
   "main": "dist/index.js",
+  "bin": {
+    "agent-messenger": "dist/cli/index.js"
+  },
   "scripts": {
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
