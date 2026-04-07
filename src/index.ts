@@ -9,6 +9,7 @@ import { listConversationsSchema, handleListConversations } from "./tools/list-c
 import { markReadSchema, handleMarkRead } from "./tools/mark-read.js";
 import { handleWhoami } from "./tools/whoami.js";
 import { setChannelSchema, handleSetChannel } from "./tools/set-channel.js";
+import { setIdentitySchema, handleSetIdentity } from "./tools/set-identity.js";
 
 const config = parseConfig();
 
@@ -16,7 +17,7 @@ const server = new McpServer(
   { name: "agent-messenger", version: "1.0.0" },
   {
     capabilities: { tools: {} },
-    instructions: `Agent messenger for inter-agent communication. You are ${config.agentId}${config.channel ? ` on channel '${config.channel}'` : ""}. Use send_message to contact other agents, check_inbox to see messages addressed to you. If multiple agent pairs are active in this project, use set_channel to isolate conversations.`,
+    instructions: `Agent messenger for inter-agent communication. You are ${config.agentId} (base: ${config.baseId})${config.channel ? ` on channel '${config.channel}'` : ""}. Use send_message to contact other agents, check_inbox to see messages addressed to you. If multiple agent pairs are active in this project, use set_channel to isolate conversations. Use set_identity to rename yourself (e.g. 'cc-design').`,
   }
 );
 
@@ -69,6 +70,13 @@ server.tool(
   "Join a channel to isolate messages when multiple agent pairs are active. Both agents must join the same channel.",
   setChannelSchema,
   handleSetChannel(config)
+);
+
+server.tool(
+  "set_identity",
+  "Rename this agent (e.g. 'cc-design', 'cc-auth'). Useful when multiple instances of the same agent type are running. You still receive messages addressed to your base ID.",
+  setIdentitySchema,
+  handleSetIdentity(config)
 );
 
 async function main() {

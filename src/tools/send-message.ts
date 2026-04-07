@@ -3,7 +3,7 @@ import type { Config } from "../config.js";
 import { createMessage } from "../beads.js";
 
 export const sendMessageSchema = {
-  to: z.string().describe("Target agent ID, e.g. 'claude-code' or 'cursor-opus'"),
+  to: z.string().describe("Target agent ID — use base ID to reach any instance (e.g. 'claude-code'), or a specific session ID (e.g. 'cc-design') to target one instance"),
   subject: z.string().describe("Short summary of the message"),
   body: z.string().describe("Full message content"),
   context_files: z.array(z.string()).optional().describe("Paths to files the recipient should read"),

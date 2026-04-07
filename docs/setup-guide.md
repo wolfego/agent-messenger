@@ -105,9 +105,11 @@ When CC starts, it will prompt you to accept the new MCP server.
 
 | Action         | Cursor | Claude Code |
 | -------------- | ------ | ----------- |
+| Help           | `#help`| `/am`       |
 | Check messages | `#cm`  | `/cm`       |
 | Send message   | `#sm`  | `/sm`       |
 | Set channel    | `#ch`  | `/ch`       |
+| Set identity   | `#id`  | `/id`       |
 | Who am I       | `#wi`  | `/wi`       |
 
 ## MCP Tools Reference
@@ -120,40 +122,67 @@ When CC starts, it will prompt you to accept the new MCP server.
 | `get_thread`         | Get full conversation thread from any message ID in it                                           |
 | `list_conversations` | List all conversations this agent is part of                                                     |
 | `mark_read`          | Mark a message as read                                                                           |
-| `whoami`             | Show agent identity and current channel                                                          |
+| `whoami`             | Show agent identity (session ID, base ID) and current channel                                    |
 | `set_channel`        | Join a channel for multi-agent isolation                                                         |
+| `set_identity`       | Rename this agent instance (e.g. `cc-design`). Still receives messages to base ID                |
 
 ## Identity & Channels
 
+### How identity works
+
+Each MCP server instance has a **base ID** (configured via `--agent-id`, e.g. `cursor-opus`) and a **session ID** that's auto-generated on startup by appending a random suffix (e.g. `cursor-opus-a3f2`).
+
+- **Base ID** — shared by all instances of the same agent type. Messages addressed to the base ID are received by every instance.
+- **Session ID** — unique to each running instance. Messages addressed to a session ID go only to that instance.
+- **Custom name** — use `set_identity` (or `#id` / `/id`) to pick a human-friendly name like `cc-design` or `cursor-auth`.
+
+Use `whoami` (`#wi` / `/wi`) to see your current identity at any time.
+
+If you don't want auto-naming (e.g. for scripting), pass `--no-auto-id` and the agent will use the exact `--agent-id` with no suffix.
+
 ### How routing works
 
-Each MCP server instance runs with an `--agent-id` (e.g., `cursor-opus`, `claude-code`). Messages are routed using labels:
+Messages are routed using Beads labels:
 
-- `to:claude-code` — addressed to the agent with ID `claude-code`
-- `from:cursor-opus` — sent by the agent with ID `cursor-opus`
+- `to:claude-code` — addressed to the base ID; **all** `claude-code-*` instances receive it
+- `to:cc-design` — addressed to a specific instance; only that agent receives it
+- `from:cursor-opus-a3f2` — sent by a specific session
 - `unread` — not yet read by the recipient
 
 ### One pair of agents (simple case)
 
-If you only have one Cursor window and one CC terminal in a project, the default IDs (`cursor-opus` and `claude-code`) are sufficient. No channels needed.
+If you only have one Cursor window and one CC terminal in a project, just use the defaults. Each gets a unique session ID automatically; you can address them by base ID and it works fine.
 
-### Multiple agent pairs in the same project
+### Multiple agents in the same project
 
-If you have multiple Cursor windows or CC terminals open in the same project, use **channels** to prevent cross-talk:
+When multiple instances are running (e.g. two CC terminals), there are two strategies:
 
-1. Tell Cursor window A: `#ch design-review`
-2. Tell CC terminal A: set channel to `design-review`
-3. Now only these two see each other's messages
+**Strategy 1: Identity naming** — give each instance a descriptive name:
 
-Other agent windows without a channel (or on a different channel) won't see those messages.
+```
+[CC Terminal 1]  /id cc-design
+[CC Terminal 2]  /id cc-auth
+[Cursor]         Send message to cc-design: "review the design doc"
+```
 
-You can also set a channel at startup via `--channel`:
+Each instance gets messages addressed to its name or its base ID.
+
+**Strategy 2: Channels** — group agents into isolated conversations:
+
+```
+[Cursor]       #ch design-review
+[CC Terminal]  set channel to design-review
+```
+
+Only agents on the same channel see each other's messages. You can also set a channel at startup:
 
 ```json
 {
   "args": ["...dist/index.js", "--agent-id", "cursor-opus", "--channel", "design"]
 }
 ```
+
+Both strategies can be combined.
 
 ## Workflow Examples
 

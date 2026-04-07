@@ -164,7 +164,8 @@ The user may type these short commands instead of full sentences:
 - \`#cm\` — Check messages. Call \`check_inbox\`, act on any unread messages. If empty, say "No new messages."
 - \`#sm\` — Send message. Ask the user who to send to (default: "claude-code") and what to say. Use \`send_message\`.
 - \`#ch\` — Set channel. Ask the user which channel to join. Call \`set_channel\`.
-- \`#wi\` — Who am I. Call \`whoami\` and report identity and channel.
+- \`#id\` — Set identity. Ask the user for a name (e.g. "cursor-design"). Call \`set_identity\`.
+- \`#wi\` — Who am I. Call \`whoami\` and report identity, base ID, and channel.
 
 ## Sending messages
 
@@ -185,21 +186,19 @@ If the user says something like "set channel to design-review" or "join channel 
 
 ## Identity
 
-Your agent ID is configured at MCP startup. Use \`whoami\` if you need to confirm your identity and current channel. You do not need to self-identify in message bodies — the \`from\` label is set automatically.
+Each agent gets a unique session ID on startup (e.g. \`cursor-opus-a3f2\`). The base ID (\`cursor-opus\`) is shared across instances — messages to the base ID reach all of them. Use \`set_identity\` to pick a memorable name (e.g. \`cursor-design\`).
+
+Use \`whoami\` to see your current identity, base ID, and channel. You do not need to self-identify in message bodies — the \`from\` label is set automatically.
 `;
 
-function skillContent(name: string, description: string, body: string): string {
-  return `---
-name: ${name}
-description: ${description}
-disable-model-invocation: true
----
-
-${body}
-`;
+function skillContent(name: string, description: string, body: string, disableInvocation = true): string {
+  const frontmatter = disableInvocation
+    ? `---\nname: ${name}\ndescription: ${description}\ndisable-model-invocation: true\n---`
+    : `---\nname: ${name}\ndescription: ${description}\n---`;
+  return `${frontmatter}\n\n${body}\n`;
 }
 
-const SKILLS: Array<{ name: string; description: string; body: string }> = [
+const SKILLS: Array<{ name: string; description: string; body: string; noInvoke?: boolean }> = [
   {
     name: "am",
     description: 'Show available agent-messenger commands. Use when the user says "/am", asks about messaging commands, or wants to know how to communicate with other agents.',
@@ -211,7 +210,10 @@ const SKILLS: Array<{ name: string; description: string; body: string }> = [
 | \`/cm\`   | Check messages — read inbox and act on unread messages |
 | \`/sm\`   | Send message — prompts for recipient and content |
 | \`/ch\`   | Set channel — join a channel for multi-agent isolation |
-| \`/wi\`   | Who am I — show agent identity and current channel |
+| \`/id\`   | Set identity — rename yourself (e.g. \`cc-design\`) |
+| \`/wi\`   | Who am I — show agent identity, base ID, and current channel |
+
+**Identity:** Each agent gets a unique session ID on startup (e.g. \`claude-code-a3f2\`). Messages to your base ID (\`claude-code\`) reach all instances. Use \`/id\` to pick a memorable name like \`cc-design\`.
 
 Messages are automatically marked as read when you check your inbox.`,
   },
@@ -231,9 +233,14 @@ Messages are automatically marked as read when you check your inbox.`,
     body: "Set or change the messaging channel using the `set_channel` MCP tool. Ask the user which channel to join. Both agents must be on the same channel to see each other's messages. Use an empty string to clear the channel and see all messages.",
   },
   {
+    name: "id",
+    description: 'Set agent identity. Use when the user says "/id" or asks to rename the agent.',
+    body: "Ask the user what name they'd like for this agent instance (suggest something descriptive like `cc-design`, `cc-auth`, `cc-review`). Then call the `set_identity` MCP tool with that name. Report back the new identity.",
+  },
+  {
     name: "wi",
     description: 'Check agent identity and current channel. Use when the user says "who am I", "#wi", or wants to verify agent configuration.',
-    body: "Check your agent identity and current channel using the `whoami` MCP tool. Report your agent ID, name, and active channel (if any).",
+    body: "Check your agent identity and current channel using the `whoami` MCP tool. Report your agent ID, session ID, base ID, and active channel (if any).",
   },
 ];
 
@@ -355,9 +362,10 @@ export async function init(args: string[]): Promise<void> {
   // Step 5: Copy CC skills
   console.log("\nStep 5: Install Claude Code skills");
   for (const skill of SKILLS) {
+    const needsInvocation = ["id", "cm", "sm", "ch", "wi"].includes(skill.name);
     writeFile(
       join(projectRoot, ".claude", "skills", skill.name, "SKILL.md"),
-      skillContent(skill.name, skill.description, skill.body),
+      skillContent(skill.name, skill.description, skill.body, !needsInvocation),
       opts.dryRun
     );
   }

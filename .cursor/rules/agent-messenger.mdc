@@ -24,7 +24,8 @@ The user may type these short commands instead of full sentences:
 - `#cm` — Check messages. Call `check_inbox`, act on any unread messages. If empty, say "No new messages."
 - `#sm` — Send message. Ask the user who to send to (default: "claude-code") and what to say. Use `send_message`.
 - `#ch` — Set channel. Ask the user which channel to join. Call `set_channel`.
-- `#wi` — Who am I. Call `whoami` and report identity and channel.
+- `#id` — Set identity. Ask the user for a name (e.g. "cursor-design"). Call `set_identity`.
+- `#wi` — Who am I. Call `whoami` and report identity, base ID, and channel.
 
 ## Sending messages
 
@@ -45,4 +46,6 @@ If the user says something like "set channel to design-review" or "join channel 
 
 ## Identity
 
-Your agent ID is configured at MCP startup. Use `whoami` if you need to confirm your identity and current channel. You do not need to self-identify in message bodies — the `from` label is set automatically.
+Each agent gets a unique session ID on startup (e.g. `cursor-opus-a3f2`). The base ID (`cursor-opus`) is shared across all instances of the same agent type — messages addressed to the base ID are received by all instances. Use `set_identity` to give yourself a memorable name (e.g. `cursor-design`).
+
+Use `whoami` to see your current identity, base ID, and channel. You do not need to self-identify in message bodies — the `from` label is set automatically.

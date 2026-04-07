@@ -211,7 +211,7 @@ export async function doctor(_args: string[]): Promise<void> {
     warn("Cursor rule not found", "Run: agent-messenger init");
   }
 
-  const skills = ["am", "cm", "sm", "ch", "wi"];
+  const skills = ["am", "cm", "sm", "ch", "id", "wi"];
   for (const skill of skills) {
     const skillPath = join(projectRoot, ".claude", "skills", skill, "SKILL.md");
     if (existsSync(skillPath)) {

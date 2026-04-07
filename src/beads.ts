@@ -105,18 +105,34 @@ export function checkInbox(
   config: Config,
   includeRead = false
 ): BeadsMessage[] {
-  const labelParts = [`to:${config.agentId}`];
-  if (!includeRead) labelParts.push("unread");
   const ch = channelLabel(config);
-  if (ch) labelParts.push(ch);
 
-  const args = [
-    "list",
-    "--type", "message",
-    "--label", labelParts.join(","),
-    "--status", "open",
-  ];
-  return bdJson<BeadsMessage[]>(config, args);
+  // Fetch messages addressed to either the base ID or the full session ID
+  const targets = new Set([config.baseId, config.agentId]);
+  const allMessages: BeadsMessage[] = [];
+
+  for (const target of targets) {
+    const labelParts = [`to:${target}`];
+    if (!includeRead) labelParts.push("unread");
+    if (ch) labelParts.push(ch);
+
+    const args = [
+      "list",
+      "--type", "message",
+      "--label", labelParts.join(","),
+      "--status", "open",
+    ];
+    const msgs = bdJson<BeadsMessage[]>(config, args);
+    allMessages.push(...msgs);
+  }
+
+  // Deduplicate by ID (in case baseId === agentId with --no-auto-id)
+  const seen = new Set<string>();
+  return allMessages.filter((m) => {
+    if (seen.has(m.id)) return false;
+    seen.add(m.id);
+    return true;
+  });
 }
 
 export function replyToMessage(

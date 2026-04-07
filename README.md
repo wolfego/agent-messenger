@@ -32,7 +32,7 @@ Both agents connect to the same MCP server with different identities. Messages r
 │    Cursor     │◄─stdio─►│  agent-messenger MCP │◄─stdio─►│  Claude Code  │
 │  cursor-opus  │         │                     │         │  claude-code  │
 │               │         │  send_message       │         │               │
-│  #cm #sm #ch  │         │  check_inbox        │         │  /cm /sm /ch  │
+│ #cm #sm #id   │         │  check_inbox        │         │ /cm /sm /id   │
 └──────────────┘         │  reply / get_thread  │         └──────────────┘
                           │  set_channel / ...   │
                           │                     │
@@ -54,24 +54,24 @@ Both agents connect to the same MCP server with different identities. Messages r
 | `list_conversations` | List all conversations                   |
 | `mark_read`          | Mark a message as read                   |
 | `set_channel`        | Join a channel for multi-agent isolation |
-| `whoami`             | Show identity and current channel        |
+| `set_identity`       | Rename this agent instance               |
+| `whoami`             | Show identity, base ID, and channel      |
 
 ## Shortcuts
 
-**Cursor** (via rules): `#cm` check messages, `#sm` send message, `#ch` set channel, `#wi` who am I
+**Cursor** (via rules): `#help` `#cm` `#sm` `#ch` `#id` `#wi`
 
-**Claude Code** (via skills): `/cm` `/sm` `/ch` `/wi`
+**Claude Code** (via skills): `/am` `/cm` `/sm` `/ch` `/id` `/wi`
 
-## Multi-Agent Isolation
+## Identity & Multi-Agent
 
-When multiple agent windows/terminals are open in the same project, use channels to prevent cross-talk:
+Each agent gets a unique session ID on startup (e.g. `claude-code-a3f2`). The base ID (`claude-code`) is shared across all instances — messages to the base ID reach every instance. Use `set_identity` (`#id` / `/id`) to pick a memorable name like `cc-design`.
 
-```
-[Cursor]  #ch design-review
-[CC]      /ch design-review
-```
+When multiple agent windows/terminals are open in the same project, you have two options:
 
-Only agents on the same channel see each other's messages.
+**Name them:** `#id cursor-design`, `/id cc-design` — then address by name
+
+**Use channels:** `#ch design-review`, `/ch design-review` — only paired agents see messages
 
 ## CLI Commands
 
