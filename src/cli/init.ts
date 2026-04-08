@@ -324,7 +324,7 @@ export async function init(args: string[]): Promise<void> {
 
   const mcpEntry = (agentId: string) => ({
     command: "node",
-    args: [serverEntry, "--agent-id", agentId, "--beads-dir", beadsDir],
+    args: [serverEntry, "--agent-id", agentId],
     transport: "stdio",
   });
 

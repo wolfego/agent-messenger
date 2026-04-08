@@ -82,7 +82,8 @@ server.tool(
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  process.stderr.write(`agent-messenger MCP started (agent: ${config.agentId})\n`);
+  const beadsInfo = config.beadsDir ? ` beads: ${config.beadsDir}` : " WARNING: no .beads/ found";
+  process.stderr.write(`agent-messenger MCP started (agent: ${config.agentId}${beadsInfo})\n`);
 }
 
 main().catch((err) => {
