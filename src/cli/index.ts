@@ -3,6 +3,7 @@
 import { argv, exit } from "node:process";
 import { init } from "./init.js";
 import { doctor } from "./doctor.js";
+import { status } from "./status.js";
 
 const command = argv[2];
 const args = argv.slice(3);
@@ -14,7 +15,11 @@ agent-messenger — AI agent-to-agent messaging via MCP + Beads
 Usage:
   agent-messenger init     Set up agent-messenger in the current project
   agent-messenger doctor   Diagnose common setup issues
+  agent-messenger status   Show message counts, recent activity, and agents
   agent-messenger help     Show this help message
+
+Options for status:
+  --beads-dir <path>  Path to .beads directory (default: auto-detect)
 
 Options for init:
   --cursor-id <id>    Cursor agent ID (default: cursor-opus)
@@ -31,6 +36,9 @@ async function main(): Promise<void> {
       break;
     case "doctor":
       await doctor(args);
+      break;
+    case "status":
+      await status(args);
       break;
     case "help":
     case "--help":
