@@ -1,0 +1,28 @@
+---
+description: Require feature branch before making code or doc changes
+globs:
+alwaysApply: true
+---
+
+# Branch Protection
+
+**NEVER commit directly to `master` (or `main`).** All code changes, documentation changes, and config changes must be on a feature branch.
+
+## Before writing any code or docs
+
+1. Check the current branch: `git branch --show-current`
+2. If on `master` or `main`, create a feature branch first:
+   - `git checkout -b feature/<short-description>`
+   - Branch names should be lowercase, hyphenated, and descriptive (e.g. `feature/add-tests`, `fix/inbox-routing`, `docs/update-roadmap`)
+3. Only then proceed with changes.
+
+## Commit and push workflow
+
+1. Commit to the feature branch with clear messages.
+2. Push the branch: `git push -u origin HEAD`
+3. Do NOT merge to master yourself — create a PR or tell the user the branch is ready.
+
+## Exceptions
+
+- Trivial one-line fixes (typos, version bumps) may be committed to master if the user explicitly approves.
+- The `agent-messenger init` and `doctor` CLI commands are read-only and don't need a branch.
