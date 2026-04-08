@@ -66,14 +66,12 @@ Create `.cursor/mcp.json` in your project. **Critical:** `--beads-dir` must poin
   "mcpServers": {
     "agent-messenger": {
       "command": "node",
-      "args": ["/path/to/agent-messenger/dist/index.js", "--agent-id", "cursor-opus", "--beads-dir", "/path/to/your-project/.beads"],
+      "args": ["/path/to/agent-messenger/dist/index.js", "--agent-id", "cursor-opus", "--beads-dir", "/path/to/your-project/.beads", "--env", "cursor"],
       "transport": "stdio"
     }
   }
 }
 ```
-
-> **Fallback:** Cursor may not read project-level MCP configs if `.cursor/` is gitignored. Also add the entry to `~/.cursor/mcp.json` (user-level).
 
 Restart Cursor to pick up the MCP server.
 
@@ -103,6 +101,8 @@ When CC starts, it will prompt you to accept the new MCP server.
 
 ### Shortcuts Reference
 
+**Messaging:**
+
 | Action         | Cursor | Claude Code |
 | -------------- | ------ | ----------- |
 | Help           | `#help`| `/am`       |
@@ -112,33 +112,80 @@ When CC starts, it will prompt you to accept the new MCP server.
 | Set identity   | `#id`  | `/id`       |
 | Who am I       | `#wi`  | `/wi`       |
 
+**Tasks:**
+
+| Action         | Cursor | Claude Code |
+| -------------- | ------ | ----------- |
+| Create task    | `#ct`  | `/ct`       |
+| List tasks     | `#lt`  | `/lt`       |
+| Show task      | `#st`  | `/st`       |
+| Ready tasks    | `#rt`  | `/rt`       |
+
+**Discovery:**
+
+| Action         | Cursor | Claude Code |
+| -------------- | ------ | ----------- |
+| List agents    | `#la`  | `/la`       |
+
 ## MCP Tools Reference
+
+**Messaging:**
 
 | Tool                 | Description                                                                                      |
 | -------------------- | ------------------------------------------------------------------------------------------------ |
-| `send_message`       | Send a message to another agent (`to`, `subject`, `body`, `action`, `context_files`, `priority`) |
+| `send_message`       | Send a message to another agent (`to`, `subject`, `body`, `action`, `context_files`, `priority`, `worktree`) |
 | `check_inbox`        | Check for unread messages (optional: `include_read`)                                             |
 | `reply`              | Reply to a message by ID (auto-threads via `replies_to`)                                         |
 | `get_thread`         | Get full conversation thread from any message ID in it                                           |
 | `list_conversations` | List all conversations this agent is part of                                                     |
 | `mark_read`          | Mark a message as read                                                                           |
-| `whoami`             | Show agent identity (session ID, base ID) and current channel                                    |
+| `whoami`             | Show agent identity (session ID, base ID, env) and current channel                               |
 | `set_channel`        | Join a channel for multi-agent isolation                                                         |
-| `set_identity`       | Rename this agent instance (e.g. `cc-design`). Still receives messages to base ID                |
+| `set_identity`       | Rename this agent instance (e.g. `cc-web-ui`). Re-registers presence. Still receives messages to base ID |
+
+**Tasks:**
+
+| Tool           | Description                                                          |
+| -------------- | -------------------------------------------------------------------- |
+| `create_task`  | Create a new task in Beads (title, description, priority, labels, deps, assignee) |
+| `list_tasks`   | List tasks with filters (status, assignee, priority, ready-only)     |
+| `show_task`    | Show detailed info about a specific task                             |
+| `update_task`  | Update status, description, notes, labels, priority, or assignee     |
+| `claim_task`   | Atomically assign a task to yourself and set it to in_progress       |
+| `close_task`   | Close a completed task, optionally showing newly unblocked tasks     |
+
+**Discovery:**
+
+| Tool           | Description                                                          |
+| -------------- | -------------------------------------------------------------------- |
+| `list_agents`  | Show agents currently online (based on presence records)             |
 
 ## Identity & Channels
 
 ### How identity works
 
-Each MCP server instance has a **base ID** (configured via `--agent-id`, e.g. `cursor-opus`) and a **session ID** that's auto-generated on startup by appending a random suffix (e.g. `cursor-opus-a3f2`).
+Each MCP server instance has a **base ID** (configured via `--agent-id`, e.g. `cursor-opus`) and a **session ID** that's auto-generated on startup by appending an environment hint and a short random suffix (e.g. `claude-code-ext-a3`, `claude-code-term-b7`).
 
 - **Base ID** — shared by all instances of the same agent type. Messages addressed to the base ID are received by every instance.
-- **Session ID** — unique to each running instance. Messages addressed to a session ID go only to that instance.
-- **Custom name** — use `set_identity` (or `#id` / `/id`) to pick a human-friendly name like `cc-design` or `cursor-auth`.
+- **Session ID** — unique to each running instance. Includes the detected environment (`cursor`, `term`, `ext`) for readability.
+- **Custom name** — use `set_identity` (or `#id` / `/id`) to pick a human-friendly name like `cc-web-ui` or `cc-auth-tests`.
 
 Use `whoami` (`#wi` / `/wi`) to see your current identity at any time.
 
 If you don't want auto-naming (e.g. for scripting), pass `--no-auto-id` and the agent will use the exact `--agent-id` with no suffix.
+
+### Set identity early
+
+**Run `/id` as early as practical in every new Claude Code session** — terminal or tab. Pick a short name that reflects what the session is working on:
+
+```
+[CC tab]      /id cc-web-ui
+[CC terminal] /id cc-auth-tests
+```
+
+This makes `list_agents` (`#la` / `/la`) useful — instead of seeing `claude-code-ext-a3` and `claude-code-ext-b7`, you see `cc-web-ui` and `cc-auth-tests`. It also updates the agent's presence record so other agents can discover and address it by name.
+
+The MCP server instructions already prompt CC agents to auto-name themselves on their first turn, but an explicit `/id` at session start is the most reliable approach.
 
 ### How routing works
 
@@ -308,7 +355,7 @@ Run `agent-messenger doctor` first — it checks everything automatically.
 | `bd` not found                    | Install Beads and ensure `bd` is on your PATH                                  |
 | "driver: bad connection"          | Run `bd dolt start` — the Dolt server isn't running                            |
 | "embedded Dolt requires CGO"      | Use `bd init --server` instead of `bd init` (required on Windows)              |
-| MCP not appearing in Cursor       | Restart Cursor; also add entry to `~/.cursor/mcp.json` as fallback             |
+| MCP not appearing in Cursor       | Restart Cursor; check `.cursor/mcp.json` exists with correct paths             |
 | Messages not routing              | Check agent IDs match (`whoami`); run `agent-messenger doctor` to verify paths |
 | Inbox shows other pair's messages | Use `set_channel` to isolate conversations                                     |
 | `--beads-dir` errors              | Must point to `.beads/` directory, not the project root                        |
