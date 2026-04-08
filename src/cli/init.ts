@@ -321,8 +321,6 @@ export async function init(args: string[]): Promise<void> {
 
   // Step 3: Generate MCP configs
   console.log("\nStep 3: Generate MCP configs");
-  const serverPath = serverEntry.replace(/\\/g, "\\\\");
-  const beadsDirEscaped = beadsDir.replace(/\\/g, "\\\\");
 
   const mcpEntry = (agentId: string) => ({
     command: "node",
