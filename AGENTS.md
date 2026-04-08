@@ -2,6 +2,23 @@
 
 This project uses **bd** (beads) for issue tracking. Run `bd prime` for full workflow context.
 
+## Branch Protection — MANDATORY
+
+**NEVER commit directly to `master`.** All changes must be on a feature branch.
+
+Before writing any code or docs:
+1. `git branch --show-current` — verify you are NOT on master
+2. If on master: `git checkout -b feature/<short-description>`
+3. Push with `git push -u origin HEAD`
+4. Do not merge — create a PR or inform the user
+
+Branch naming: `feature/<name>`, `fix/<name>`, `docs/<name>`, `test/<name>`
+
+## Key Documents
+
+- **Roadmap:** `docs/plans/roadmap.md`
+- **Setup guide:** `docs/setup-guide.md`
+
 ## Quick Reference
 
 ```bash

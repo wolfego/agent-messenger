@@ -1,16 +1,35 @@
 # CLAUDE.md — Agent Messenger
 
 ## What This Is
+
 An MCP server that enables Cursor and Claude Code agents to send messages to each other, backed by Beads for persistent storage.
 
-## Design Doc
-Read `docs/plans/2026-04-06-agent-messenger-design.md` for the full architecture and implementation plan. Follow it phase by phase.
+## Key Documents
+
+- **Roadmap:** `docs/plans/roadmap.md` — current phases, epics, and tasks
+- **Original design:** `docs/plans/2026-04-06-agent-messenger-design.md` — architecture and rationale
+- **Setup guide:** `docs/setup-guide.md` — installation and usage
 
 ## Commands
+
 - `npm run build` — compile TypeScript
 - `npm test` — run tests
 - `bd list --type msg --json` — see all messages in Beads
 - `bd prime` — see context summary including pending messages
+- `bd ready` — find available tasks to work on
+- `bd list --type task --status open` — see all open tasks
+
+## Branch Protection — MANDATORY
+
+**NEVER commit directly to `master`.** All changes must be on a feature branch.
+
+Before writing any code or docs:
+1. `git branch --show-current` — verify you are NOT on master
+2. If on master: `git checkout -b feature/<short-description>`
+3. Push with `git push -u origin HEAD`
+4. Do not merge — create a PR or inform the user
+
+Branch naming: `feature/<name>`, `fix/<name>`, `docs/<name>`, `test/<name>`
 
 <!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:ca08a54f -->
 ## Beads Issue Tracker
