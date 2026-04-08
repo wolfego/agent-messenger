@@ -2,7 +2,7 @@
   "mcpServers": {
     "agent-messenger": {
       "command": "node",
-      "args": ["C:\\Users\\wolfe\\Dev\\agent-messenger\\dist\\index.js", "--agent-id", "claude-code"],
+      "args": ["C:\\Users\\wolfe\\Dev\\agent-messenger\\dist\\index.js", "--agent-id", "claude-code", "--beads-dir", "C:\\Users\\wolfe\\Dev\\agent-messenger\\.beads"],
       "transport": "stdio"
     }
   }

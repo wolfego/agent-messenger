@@ -322,7 +322,13 @@ export async function init(args: string[]): Promise<void> {
   // Step 3: Generate MCP configs
   console.log("\nStep 3: Generate MCP configs");
 
-  const mcpEntry = (agentId: string) => ({
+  const projectMcpEntry = (agentId: string) => ({
+    command: "node",
+    args: [serverEntry, "--agent-id", agentId, "--beads-dir", beadsDir],
+    transport: "stdio",
+  });
+
+  const userMcpEntry = (agentId: string) => ({
     command: "node",
     args: [serverEntry, "--agent-id", agentId],
     transport: "stdio",
@@ -332,7 +338,7 @@ export async function init(args: string[]): Promise<void> {
   mergeJsonFile(
     join(projectRoot, ".cursor", "mcp.json"),
     "agent-messenger",
-    mcpEntry(opts.cursorId),
+    projectMcpEntry(opts.cursorId),
     opts.dryRun
   );
 
@@ -340,13 +346,13 @@ export async function init(args: string[]): Promise<void> {
   mergeJsonFile(
     join(projectRoot, ".mcp.json"),
     "agent-messenger",
-    mcpEntry(opts.ccId),
+    projectMcpEntry(opts.ccId),
     opts.dryRun
   );
 
-  // User-level Cursor config (fallback for gitignored project configs)
+  // User-level Cursor config (fallback — no --beads-dir, relies on auto-detect from cwd)
   const userMcpPath = join(homedir(), ".cursor", "mcp.json");
-  mergeJsonFile(userMcpPath, "agent-messenger", mcpEntry(opts.cursorId), opts.dryRun);
+  mergeJsonFile(userMcpPath, "agent-messenger", userMcpEntry(opts.cursorId), opts.dryRun);
   log("ℹ", "Also wrote user-level ~/.cursor/mcp.json as fallback");
 
   // Step 4: Copy Cursor rule
