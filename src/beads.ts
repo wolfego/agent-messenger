@@ -286,7 +286,7 @@ const PRESENCE_STALENESS_MS = 2 * 60 * 60 * 1000; // 2 hours
 export function cleanStalePresence(config: Config): void {
   try {
     const all = bdJson<BeadsMessage[]>(config, [
-      "list", "--type", "presence", "--label", `base:${config.baseId}`,
+      "list", "--type", "chore", "--label", `kind:presence,base:${config.baseId}`,
     ]);
     for (const rec of all) {
       const recAgent = rec.labels?.find((l) => l.startsWith("agent:"))?.slice(6);
@@ -304,12 +304,12 @@ export function cleanStalePresence(config: Config): void {
  * If one already exists for this agentId, update it; otherwise create.
  */
 export function registerPresence(config: Config): void {
-  const labels = [`agent:${config.agentId}`, `base:${config.baseId}`];
+  const labels = [`kind:presence`, `agent:${config.agentId}`, `base:${config.baseId}`];
   if (config.channel) labels.push(`channel:${config.channel}`);
 
   try {
     const existing = bdJson<BeadsMessage[]>(config, [
-      "list", "--type", "presence", "--label", `agent:${config.agentId}`, "--status", "open",
+      "list", "--type", "chore", "--label", `kind:presence,agent:${config.agentId}`, "--status", "open",
     ]);
 
     if (existing.length > 0) {
@@ -323,7 +323,7 @@ export function registerPresence(config: Config): void {
 
   bdExec(config, [
     "create", `${config.agentId} online`,
-    "--type", "presence",
+    "--type", "chore",
     "--labels", labels.join(","),
     "--priority", "4",
     "--description", `Agent ${config.agentId} (base: ${config.baseId}) started at ${new Date().toISOString()}`,
@@ -336,7 +336,7 @@ export function registerPresence(config: Config): void {
  */
 export function listAgents(config: Config): AgentPresence[] {
   const all = bdJson<BeadsMessage[]>(config, [
-    "list", "--type", "presence", "--status", "open",
+    "list", "--type", "chore", "--label", "kind:presence", "--status", "open",
   ]);
 
   const now = Date.now();
