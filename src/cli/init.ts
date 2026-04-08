@@ -166,6 +166,10 @@ The user may type these short commands instead of full sentences:
 - \`#ch\` — Set channel. Ask the user which channel to join. Call \`set_channel\`.
 - \`#id\` — Set identity. Ask the user for a name (e.g. "cursor-design"). Call \`set_identity\`.
 - \`#wi\` — Who am I. Call \`whoami\` and report identity, base ID, and channel.
+- \`#ct\` — Create task. Ask for title and optional details, then call \`create_task\`.
+- \`#lt\` — List tasks. Call \`list_tasks\` with sensible defaults (open tasks, sorted by priority).
+- \`#st\` — Show task. Ask for task ID, then call \`show_task\`.
+- \`#rt\` — Ready tasks. Call \`list_tasks\` with \`ready_only: true\` to show tasks with no blockers.
 
 ## Sending messages
 
@@ -204,6 +208,8 @@ const SKILLS: Array<{ name: string; description: string; body: string; noInvoke?
     description: 'Show available agent-messenger commands. Use when the user says "/am", asks about messaging commands, or wants to know how to communicate with other agents.',
     body: `Show the user this list of available agent-messenger commands:
 
+**Messaging:**
+
 | Command | Description |
 |---------|-------------|
 | \`/am\`   | Show this list of commands |
@@ -212,6 +218,15 @@ const SKILLS: Array<{ name: string; description: string; body: string; noInvoke?
 | \`/ch\`   | Set channel — join a channel for multi-agent isolation |
 | \`/id\`   | Set identity — rename yourself (e.g. \`cc-design\`) |
 | \`/wi\`   | Who am I — show agent identity, base ID, and current channel |
+
+**Tasks:**
+
+| Command | Description |
+|---------|-------------|
+| \`/ct\`   | Create task — prompts for title and details |
+| \`/lt\`   | List tasks — show open tasks sorted by priority |
+| \`/st\`   | Show task — prompts for task ID, shows full details |
+| \`/rt\`   | Ready tasks — show tasks with no blockers |
 
 **Identity:** Each agent gets a unique session ID on startup (e.g. \`claude-code-a3f2\`). Messages to your base ID (\`claude-code\`) reach all instances. Use \`/id\` to pick a memorable name like \`cc-design\`.
 
@@ -241,6 +256,26 @@ Messages are automatically marked as read when you check your inbox.`,
     name: "wi",
     description: 'Check agent identity and current channel. Use when the user says "who am I", "#wi", or wants to verify agent configuration.',
     body: "Check your agent identity and current channel using the `whoami` MCP tool. Report your agent ID, session ID, base ID, and active channel (if any).",
+  },
+  {
+    name: "ct",
+    description: 'Create a new task. Use when the user says "/ct", "create task", or wants to track new work.',
+    body: "Create a new task using the `create_task` MCP tool. Ask the user for a title and optionally: description, priority (P0-P4), type (task/bug/feature/epic/chore), labels, parent issue ID, and assignee. Report the created task ID.",
+  },
+  {
+    name: "lt",
+    description: 'List tasks. Use when the user says "/lt", "list tasks", or wants to see current work items.',
+    body: "List tasks using the `list_tasks` MCP tool. Default to open tasks sorted by priority. If the user asks for specific filters (status, assignee, label), pass those along. Show a concise summary: ID, title, status, priority, assignee.",
+  },
+  {
+    name: "st",
+    description: 'Show task details. Use when the user says "/st", "show task", or asks about a specific task.',
+    body: "Show task details using the `show_task` MCP tool. Ask the user for the task ID. Report all available fields: title, description, status, priority, assignee, labels, dependencies, and notes.",
+  },
+  {
+    name: "rt",
+    description: 'Show ready tasks (no blockers). Use when the user says "/rt", "ready tasks", or wants to know what to work on next.',
+    body: "List ready tasks using the `list_tasks` MCP tool with `ready_only: true`. These are open tasks with no unresolved blockers. Show a concise summary: ID, title, priority, assignee.",
   },
 ];
 

@@ -26,6 +26,10 @@ The user may type these short commands instead of full sentences:
 - `#ch` — Set channel. Ask the user which channel to join. Call `set_channel`.
 - `#id` — Set identity. Ask the user for a name (e.g. "cursor-design"). Call `set_identity`.
 - `#wi` — Who am I. Call `whoami` and report identity, base ID, and channel.
+- `#ct` — Create task. Ask for title and optional details, then call `create_task`.
+- `#lt` — List tasks. Call `list_tasks` with sensible defaults (open tasks, sorted by priority).
+- `#st` — Show task. Ask for task ID, then call `show_task`.
+- `#rt` — Ready tasks. Call `list_tasks` with `ready_only: true` to show tasks with no blockers.
 
 ## Sending messages
 

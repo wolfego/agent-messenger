@@ -6,6 +6,8 @@ disable-model-invocation: true
 
 Show the user this list of available agent-messenger commands:
 
+**Messaging:**
+
 | Command | Description |
 |---------|-------------|
 | `/am`   | Show this list of commands |
@@ -14,6 +16,15 @@ Show the user this list of available agent-messenger commands:
 | `/ch`   | Set channel — join a channel for multi-agent isolation |
 | `/id`   | Set identity — rename yourself (e.g. `cc-design`) |
 | `/wi`   | Who am I — show agent identity, base ID, and current channel |
+
+**Tasks:**
+
+| Command | Description |
+|---------|-------------|
+| `/ct`   | Create task — prompts for title and details |
+| `/lt`   | List tasks — show open tasks sorted by priority |
+| `/st`   | Show task — prompts for task ID, shows full details |
+| `/rt`   | Ready tasks — show tasks with no blockers |
 
 **Identity:** Each agent gets a unique session ID on startup (e.g. `claude-code-a3f2`). Messages to your base ID (`claude-code`) reach all instances. Use `/id` to pick a memorable name like `cc-design`.
 
