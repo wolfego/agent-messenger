@@ -1,4 +1,5 @@
-import { resolve } from "node:path";
+import { resolve, dirname, join } from "node:path";
+import { existsSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 
 export interface Config {
@@ -7,6 +8,7 @@ export interface Config {
   agentName: string;
   beadsDir?: string;
   channel?: string;
+  projectRoot?: string;
 }
 
 function generateSessionSuffix(): string {
@@ -18,6 +20,18 @@ function formatName(id: string): string {
     .split("-")
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
+}
+
+function detectBeadsDir(): { beadsDir: string; projectRoot: string } | undefined {
+  let dir = process.cwd();
+  while (dir !== dirname(dir)) {
+    const candidate = join(dir, ".beads");
+    if (existsSync(candidate)) {
+      return { beadsDir: candidate, projectRoot: dir };
+    }
+    dir = dirname(dir);
+  }
+  return undefined;
 }
 
 export function parseConfig(): Config {
@@ -46,9 +60,23 @@ export function parseConfig(): Config {
     beadsDir = resolve(beadsDir, ".beads");
   }
 
+  let projectRoot: string | undefined;
+
+  if (!beadsDir) {
+    const detected = detectBeadsDir();
+    if (detected) {
+      beadsDir = detected.beadsDir;
+      projectRoot = detected.projectRoot;
+    }
+  } else {
+    projectRoot = beadsDir.endsWith(".beads")
+      ? dirname(beadsDir)
+      : beadsDir;
+  }
+
   const suffix = noAutoId ? "" : `-${generateSessionSuffix()}`;
   const agentId = `${baseId}${suffix}`;
   const agentName = formatName(agentId);
 
-  return { baseId, agentId, agentName, beadsDir, channel };
+  return { baseId, agentId, agentName, beadsDir, channel, projectRoot };
 }
