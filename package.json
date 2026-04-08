@@ -1,5 +1,5 @@
 {
-  "name": "agent-messenger",
+  "name": "cursor-claude-messenger",
   "version": "1.0.0",
   "description": "MCP server for AI agent-to-agent messaging, backed by Beads",
   "main": "dist/index.js",
