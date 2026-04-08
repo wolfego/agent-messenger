@@ -30,6 +30,7 @@ The user may type these short commands instead of full sentences:
 - `#lt` — List tasks. Call `list_tasks` with sensible defaults (open tasks, sorted by priority).
 - `#st` — Show task. Ask for task ID, then call `show_task`.
 - `#rt` — Ready tasks. Call `list_tasks` with `ready_only: true` to show tasks with no blockers.
+- `#la` — List agents. Call `list_agents` to see who is currently online in this project.
 
 ## Sending messages
 

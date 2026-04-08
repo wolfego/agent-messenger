@@ -170,6 +170,7 @@ The user may type these short commands instead of full sentences:
 - \`#lt\` — List tasks. Call \`list_tasks\` with sensible defaults (open tasks, sorted by priority).
 - \`#st\` — Show task. Ask for task ID, then call \`show_task\`.
 - \`#rt\` — Ready tasks. Call \`list_tasks\` with \`ready_only: true\` to show tasks with no blockers.
+- \`#la\` — List agents. Call \`list_agents\` to see who is currently online in this project.
 
 ## Sending messages
 
@@ -227,6 +228,7 @@ const SKILLS: Array<{ name: string; description: string; body: string; noInvoke?
 | \`/lt\`   | List tasks — show open tasks sorted by priority |
 | \`/st\`   | Show task — prompts for task ID, shows full details |
 | \`/rt\`   | Ready tasks — show tasks with no blockers |
+| \`/la\`   | List agents — show who is currently online |
 
 **Identity:** Each agent gets a unique session ID on startup (e.g. \`claude-code-a3f2\`). Messages to your base ID (\`claude-code\`) reach all instances. Use \`/id\` to pick a memorable name like \`cc-design\`.
 
@@ -276,6 +278,11 @@ Messages are automatically marked as read when you check your inbox.`,
     name: "rt",
     description: 'Show ready tasks (no blockers). Use when the user says "/rt", "ready tasks", or wants to know what to work on next.',
     body: "List ready tasks using the `list_tasks` MCP tool with `ready_only: true`. These are open tasks with no unresolved blockers. Show a concise summary: ID, title, priority, assignee.",
+  },
+  {
+    name: "la",
+    description: 'List online agents. Use when the user says "/la", "list agents", "who is online", or wants to see active agents in this project.',
+    body: "List online agents using the `list_agents` MCP tool. Show each agent's ID, base ID, channel (if any), and when they were last seen. If an agent appears stale, mention that they may no longer be active.",
   },
 ];
 

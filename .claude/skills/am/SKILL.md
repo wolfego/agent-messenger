@@ -25,6 +25,7 @@ Show the user this list of available agent-messenger commands:
 | `/lt`   | List tasks — show open tasks sorted by priority |
 | `/st`   | Show task — prompts for task ID, shows full details |
 | `/rt`   | Ready tasks — show tasks with no blockers |
+| `/la`   | List agents — show who is currently online |
 
 **Identity:** Each agent gets a unique session ID on startup (e.g. `claude-code-a3f2`). Messages to your base ID (`claude-code`) reach all instances. Use `/id` to pick a memorable name like `cc-design`.
 
