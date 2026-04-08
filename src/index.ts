@@ -16,6 +16,8 @@ import { showTaskSchema, handleShowTask } from "./tools/show-task.js";
 import { updateTaskSchema, handleUpdateTask } from "./tools/update-task.js";
 import { claimTaskSchema, handleClaimTask } from "./tools/claim-task.js";
 import { closeTaskSchema, handleCloseTask } from "./tools/close-task.js";
+import { listAgentsSchema, handleListAgents } from "./tools/list-agents.js";
+import { cleanStalePresence, registerPresence } from "./beads.js";
 
 const config = parseConfig();
 
@@ -127,11 +129,28 @@ server.tool(
   handleCloseTask(config)
 );
 
+server.tool(
+  "list_agents",
+  "List agents currently online in this project (based on presence records)",
+  listAgentsSchema,
+  handleListAgents(config)
+);
+
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
   const beadsInfo = config.beadsDir ? ` beads: ${config.beadsDir}` : " WARNING: no .beads/ found";
   process.stderr.write(`agent-messenger MCP started (agent: ${config.agentId}${beadsInfo})\n`);
+
+  if (config.beadsDir) {
+    try {
+      cleanStalePresence(config);
+      registerPresence(config);
+      process.stderr.write(`  presence registered for ${config.agentId}\n`);
+    } catch (err) {
+      process.stderr.write(`  warning: presence registration failed: ${err}\n`);
+    }
+  }
 }
 
 main().catch((err) => {

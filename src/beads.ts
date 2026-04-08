@@ -264,3 +264,89 @@ function findRootId(config: Config, msg: BeadsMessage): string {
     return msg.id;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Presence
+// ---------------------------------------------------------------------------
+
+export interface AgentPresence {
+  agent_id: string;
+  base_id: string;
+  channel: string | null;
+  last_seen: string;
+  stale: boolean;
+}
+
+const PRESENCE_STALENESS_MS = 2 * 60 * 60 * 1000; // 2 hours
+
+/**
+ * Remove presence records from previous sessions sharing our baseId.
+ * Called on startup before registering the current session.
+ */
+export function cleanStalePresence(config: Config): void {
+  try {
+    const all = bdJson<BeadsMessage[]>(config, [
+      "list", "--type", "presence", "--label", `base:${config.baseId}`,
+    ]);
+    for (const rec of all) {
+      const recAgent = rec.labels?.find((l) => l.startsWith("agent:"))?.slice(6);
+      if (recAgent && recAgent !== config.agentId) {
+        try {
+          bdExec(config, ["close", rec.id, "--reason", "stale session replaced"]);
+        } catch { /* best-effort */ }
+      }
+    }
+  } catch { /* ignore — list may return nothing */ }
+}
+
+/**
+ * Write a presence record for this agent session.
+ * If one already exists for this agentId, update it; otherwise create.
+ */
+export function registerPresence(config: Config): void {
+  const labels = [`agent:${config.agentId}`, `base:${config.baseId}`];
+  if (config.channel) labels.push(`channel:${config.channel}`);
+
+  try {
+    const existing = bdJson<BeadsMessage[]>(config, [
+      "list", "--type", "presence", "--label", `agent:${config.agentId}`, "--status", "open",
+    ]);
+
+    if (existing.length > 0) {
+      bdExec(config, [
+        "update", existing[0]!.id,
+        "--append-notes", `heartbeat ${new Date().toISOString()}`,
+      ]);
+      return;
+    }
+  } catch { /* fall through to create */ }
+
+  bdExec(config, [
+    "create", `${config.agentId} online`,
+    "--type", "presence",
+    "--labels", labels.join(","),
+    "--priority", "4",
+    "--description", `Agent ${config.agentId} (base: ${config.baseId}) started at ${new Date().toISOString()}`,
+  ]);
+}
+
+/**
+ * List all agents with open presence records.
+ * Marks agents as stale if their record hasn't been updated within the staleness window.
+ */
+export function listAgents(config: Config): AgentPresence[] {
+  const all = bdJson<BeadsMessage[]>(config, [
+    "list", "--type", "presence", "--status", "open",
+  ]);
+
+  const now = Date.now();
+  return all.map((rec) => {
+    const agentId = rec.labels?.find((l) => l.startsWith("agent:"))?.slice(6) ?? rec.title;
+    const baseId = rec.labels?.find((l) => l.startsWith("base:"))?.slice(5) ?? "unknown";
+    const channel = rec.labels?.find((l) => l.startsWith("channel:"))?.slice(8) ?? null;
+    const lastSeen = rec.updated_at;
+    const stale = now - new Date(lastSeen).getTime() > PRESENCE_STALENESS_MS;
+
+    return { agent_id: agentId, base_id: baseId, channel, last_seen: lastSeen, stale };
+  });
+}
