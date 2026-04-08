@@ -10,6 +10,12 @@ import { markReadSchema, handleMarkRead } from "./tools/mark-read.js";
 import { handleWhoami } from "./tools/whoami.js";
 import { setChannelSchema, handleSetChannel } from "./tools/set-channel.js";
 import { setIdentitySchema, handleSetIdentity } from "./tools/set-identity.js";
+import { createTaskSchema, handleCreateTask } from "./tools/create-task.js";
+import { listTasksSchema, handleListTasks } from "./tools/list-tasks.js";
+import { showTaskSchema, handleShowTask } from "./tools/show-task.js";
+import { updateTaskSchema, handleUpdateTask } from "./tools/update-task.js";
+import { claimTaskSchema, handleClaimTask } from "./tools/claim-task.js";
+import { closeTaskSchema, handleCloseTask } from "./tools/close-task.js";
 
 const config = parseConfig();
 
@@ -77,6 +83,48 @@ server.tool(
   "Rename this agent (e.g. 'cc-design', 'cc-auth'). Useful when multiple instances of the same agent type are running. You still receive messages addressed to your base ID.",
   setIdentitySchema,
   handleSetIdentity(config)
+);
+
+server.tool(
+  "create_task",
+  "Create a new task in the Beads issue tracker",
+  createTaskSchema,
+  handleCreateTask(config)
+);
+
+server.tool(
+  "list_tasks",
+  "List tasks with optional filters (status, assignee, priority, ready-only)",
+  listTasksSchema,
+  handleListTasks(config)
+);
+
+server.tool(
+  "show_task",
+  "Show detailed information about a specific task",
+  showTaskSchema,
+  handleShowTask(config)
+);
+
+server.tool(
+  "update_task",
+  "Update a task's status, description, notes, labels, priority, or assignee",
+  updateTaskSchema,
+  handleUpdateTask(config)
+);
+
+server.tool(
+  "claim_task",
+  "Claim a task (atomically assigns to you and sets status to in_progress)",
+  claimTaskSchema,
+  handleClaimTask(config)
+);
+
+server.tool(
+  "close_task",
+  "Close a completed task, optionally showing newly unblocked tasks",
+  closeTaskSchema,
+  handleCloseTask(config)
 );
 
 async function main() {
