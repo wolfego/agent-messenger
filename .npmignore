@@ -1,0 +1,20 @@
+# Source (dist/ is published, not src/)
+src/
+
+# Beads database
+.beads/
+
+# Config files (project-specific)
+.cursor/
+.claude/
+.mcp.json
+.git/
+
+# Docs and plans (README is included via files field)
+docs/
+
+# Dev files
+tsconfig.json
+CLAUDE.md
+AGENTS.md
+*.stackdump

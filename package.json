@@ -6,8 +6,17 @@
   "bin": {
     "agent-messenger": "dist/cli/index.js"
   },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "build": "tsc",
+    "prepublishOnly": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -18,9 +27,12 @@
     "mcp",
     "ai-agents",
     "messaging",
-    "beads"
+    "cursor",
+    "claude-code",
+    "beads",
+    "agent-to-agent"
   ],
-  "author": "",
+  "author": "wolfego",
   "license": "MIT",
   "type": "module",
   "bugs": {
