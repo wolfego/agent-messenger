@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync } from "node:fs";
 import { resolve, join, dirname } from "node:path";
 import { execFileSync, execSync } from "node:child_process";
-import { platform, homedir } from "node:os";
+import { platform } from "node:os";
 import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -376,11 +376,6 @@ export async function init(args: string[]): Promise<void> {
     transport: "stdio",
   });
 
-  const userMcpEntry = (agentId: string) => ({
-    command: "node",
-    args: [serverEntry, "--agent-id", agentId],
-    transport: "stdio",
-  });
 
   // Project-level Cursor config
   mergeJsonFile(
@@ -397,11 +392,6 @@ export async function init(args: string[]): Promise<void> {
     ccMcpEntry(opts.ccId),
     opts.dryRun
   );
-
-  // User-level Cursor config (fallback — no --beads-dir, relies on auto-detect from cwd)
-  const userMcpPath = join(homedir(), ".cursor", "mcp.json");
-  mergeJsonFile(userMcpPath, "agent-messenger", userMcpEntry(opts.cursorId), opts.dryRun);
-  log("ℹ", "Also wrote user-level ~/.cursor/mcp.json as fallback");
 
   // Step 4: Copy Cursor rule
   console.log("\nStep 4: Install Cursor rule");
