@@ -2,6 +2,8 @@ import { resolve, dirname, join } from "node:path";
 import { existsSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 
+export type AgentEnv = "cursor" | "term" | "ext" | "unknown";
+
 export interface Config {
   baseId: string;
   agentId: string;
@@ -9,9 +11,32 @@ export interface Config {
   beadsDir?: string;
   channel?: string;
   projectRoot?: string;
+  env: AgentEnv;
 }
 
-function generateSessionSuffix(): string {
+function detectEnv(): AgentEnv {
+  const env = process.env;
+
+  // Cursor's own agent (Composer/Agent mode) sets CURSOR_AGENT=1
+  if (env["CURSOR_AGENT"] === "1") return "cursor";
+
+  // VS Code extension host (Claude Code tab in Cursor/VS Code)
+  // Has VSCODE_PID and extension-host in process title, but no CURSOR_AGENT
+  const procTitle = env["VSCODE_PROCESS_TITLE"] ?? "";
+  if (env["VSCODE_PID"] && procTitle.includes("extension-host")) return "ext";
+
+  // Terminal embedded in an IDE — has VSCODE_PID but no extension-host marker
+  if (env["VSCODE_PID"]) return "term";
+
+  // Standalone terminal — no IDE env vars at all
+  if (env["TERM"] || env["TERM_PROGRAM"] || process.stdin.isTTY) return "term";
+
+  return "unknown";
+}
+
+function generateSessionSuffix(baseId: string, env: AgentEnv): string {
+  const rand = randomBytes(1).toString("hex"); // 2 hex chars for uniqueness
+  if (env !== "unknown" && !baseId.includes(env)) return `${env}-${rand}`;
   return randomBytes(2).toString("hex");
 }
 
@@ -74,9 +99,10 @@ export function parseConfig(): Config {
       : beadsDir;
   }
 
-  const suffix = noAutoId ? "" : `-${generateSessionSuffix()}`;
+  const env = detectEnv();
+  const suffix = noAutoId ? "" : `-${generateSessionSuffix(baseId, env)}`;
   const agentId = `${baseId}${suffix}`;
   const agentName = formatName(agentId);
 
-  return { baseId, agentId, agentName, beadsDir, channel, projectRoot };
+  return { baseId, agentId, agentName, beadsDir, channel, projectRoot, env };
 }

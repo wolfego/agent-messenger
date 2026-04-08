@@ -11,6 +11,7 @@ export function handleWhoami(config: Config) {
               agent_id: config.agentId,
               base_id: config.baseId,
               agent_name: config.agentName,
+              env: config.env,
               channel: config.channel ?? null,
               project: config.projectRoot ?? null,
               beads_dir: config.beadsDir ?? null,

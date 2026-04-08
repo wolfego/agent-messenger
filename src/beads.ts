@@ -272,6 +272,7 @@ function findRootId(config: Config, msg: BeadsMessage): string {
 export interface AgentPresence {
   agent_id: string;
   base_id: string;
+  env: string | null;
   channel: string | null;
   last_seen: string;
   stale: boolean;
@@ -304,7 +305,7 @@ export function cleanStalePresence(config: Config): void {
  * If one already exists for this agentId, update it; otherwise create.
  */
 export function registerPresence(config: Config): void {
-  const labels = [`kind:presence`, `agent:${config.agentId}`, `base:${config.baseId}`];
+  const labels = [`kind:presence`, `agent:${config.agentId}`, `base:${config.baseId}`, `env:${config.env}`];
   if (config.channel) labels.push(`channel:${config.channel}`);
 
   try {
@@ -343,10 +344,11 @@ export function listAgents(config: Config): AgentPresence[] {
   return all.map((rec) => {
     const agentId = rec.labels?.find((l) => l.startsWith("agent:"))?.slice(6) ?? rec.title;
     const baseId = rec.labels?.find((l) => l.startsWith("base:"))?.slice(5) ?? "unknown";
+    const envLabel = rec.labels?.find((l) => l.startsWith("env:"))?.slice(4) ?? null;
     const channel = rec.labels?.find((l) => l.startsWith("channel:"))?.slice(8) ?? null;
     const lastSeen = rec.updated_at;
     const stale = now - new Date(lastSeen).getTime() > PRESENCE_STALENESS_MS;
 
-    return { agent_id: agentId, base_id: baseId, channel, last_seen: lastSeen, stale };
+    return { agent_id: agentId, base_id: baseId, env: envLabel, channel, last_seen: lastSeen, stale };
   });
 }
