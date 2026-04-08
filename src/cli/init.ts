@@ -364,7 +364,13 @@ export async function init(args: string[]): Promise<void> {
   // Step 3: Generate MCP configs
   console.log("\nStep 3: Generate MCP configs");
 
-  const projectMcpEntry = (agentId: string) => ({
+  const cursorMcpEntry = (agentId: string) => ({
+    command: "node",
+    args: [serverEntry, "--agent-id", agentId, "--beads-dir", beadsDir, "--env", "cursor"],
+    transport: "stdio",
+  });
+
+  const ccMcpEntry = (agentId: string) => ({
     command: "node",
     args: [serverEntry, "--agent-id", agentId, "--beads-dir", beadsDir],
     transport: "stdio",
@@ -380,7 +386,7 @@ export async function init(args: string[]): Promise<void> {
   mergeJsonFile(
     join(projectRoot, ".cursor", "mcp.json"),
     "agent-messenger",
-    projectMcpEntry(opts.cursorId),
+    cursorMcpEntry(opts.cursorId),
     opts.dryRun
   );
 
@@ -388,7 +394,7 @@ export async function init(args: string[]): Promise<void> {
   mergeJsonFile(
     join(projectRoot, ".mcp.json"),
     "agent-messenger",
-    projectMcpEntry(opts.ccId),
+    ccMcpEntry(opts.ccId),
     opts.dryRun
   );
 

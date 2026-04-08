@@ -66,6 +66,8 @@ export function parseConfig(): Config {
   let channel: string | undefined;
   let noAutoId = false;
 
+  let explicitEnv: AgentEnv | undefined;
+
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--agent-id" && args[i + 1]) {
       baseId = args[i + 1]!;
@@ -75,6 +77,9 @@ export function parseConfig(): Config {
       i++;
     } else if (args[i] === "--channel" && args[i + 1]) {
       channel = args[i + 1]!;
+      i++;
+    } else if (args[i] === "--env" && args[i + 1]) {
+      explicitEnv = args[i + 1] as AgentEnv;
       i++;
     } else if (args[i] === "--no-auto-id") {
       noAutoId = true;
@@ -99,7 +104,7 @@ export function parseConfig(): Config {
       : beadsDir;
   }
 
-  const env = detectEnv();
+  const env = explicitEnv ?? detectEnv();
   const suffix = noAutoId ? "" : `-${generateSessionSuffix(baseId, env)}`;
   const agentId = `${baseId}${suffix}`;
   const agentName = formatName(agentId);
