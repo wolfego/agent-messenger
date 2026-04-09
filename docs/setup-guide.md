@@ -4,13 +4,24 @@ An MCP server that lets AI agents (Cursor, Claude Code) send messages to each ot
 
 ## Automated Setup (Recommended)
 
+If agent-messenger is published to npm:
+
 ```bash
 npm install -g agent-messenger
 cd your-project
 agent-messenger init
 ```
 
-This handles everything: Beads initialization, MCP config generation (with correct `--beads-dir`), Cursor rules, and Claude Code skills. Then restart Cursor and you're done.
+If running from source (not yet published):
+
+```bash
+cd your-project
+node /path/to/agent-messenger/dist/cli/index.js init
+```
+
+Use `--dry-run` to preview changes without writing anything.
+
+This handles everything: Beads initialization, MCP config generation (with correct `--beads-dir` and `--env`), Cursor rules, and Claude Code skills. Then restart Cursor and you're done.
 
 If something isn't working:
 
