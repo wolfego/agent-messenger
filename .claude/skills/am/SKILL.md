@@ -27,6 +27,13 @@ Show the user this list of available agent-messenger commands:
 | `/rt`   | Ready tasks — show tasks with no blockers |
 | `/la`   | List agents — show who is currently online |
 
+**CLI:**
+
+| Command   | Description |
+|-----------|-------------|
+| `/log`    | Run `agent-messenger log` — show message history (supports `--agent`, `--channel`, `--limit`, `--thread`) |
+| `/status` | Run `agent-messenger status` — show unread counts, active agents, channels |
+
 **Identity:** Each agent gets a unique session ID on startup (e.g. `claude-code-a3f2`). Messages to your base ID (`claude-code`) reach all instances. Use `/id` to pick a memorable name like `cc-design`.
 
 Messages are automatically marked as read when you check your inbox.
