@@ -144,9 +144,9 @@ When CC starts, it will prompt you to accept the new MCP server.
 
 | Tool                 | Description                                                                                      |
 | -------------------- | ------------------------------------------------------------------------------------------------ |
-| `send_message`       | Send a message to another agent (`to`, `subject`, `body`, `action`, `context_files`, `priority`, `worktree`) |
+| `send_message`       | Send a message to another agent (`to`, `subject`, `body`, `action`, `context_files`, `priority`, `worktree`, `task_id`) |
 | `check_inbox`        | Check for unread messages (optional: `include_read`)                                             |
-| `reply`              | Reply to a message by ID (auto-threads via `replies_to`)                                         |
+| `reply`              | Reply to a message by ID (auto-threads via `replies_to`). Optional `task_id` to link to a task   |
 | `get_thread`         | Get full conversation thread from any message ID in it                                           |
 | `list_conversations` | List all conversations this agent is part of                                                     |
 | `mark_read`          | Mark a message as read                                                                           |
@@ -160,7 +160,7 @@ When CC starts, it will prompt you to accept the new MCP server.
 | -------------- | -------------------------------------------------------------------- |
 | `create_task`  | Create a new task in Beads (title, description, priority, labels, deps, assignee) |
 | `list_tasks`   | List tasks with filters (status, assignee, priority, ready-only)     |
-| `show_task`    | Show detailed info about a specific task                             |
+| `show_task`    | Show detailed info about a task; includes linked messages if any     |
 | `update_task`  | Update status, description, notes, labels, priority, or assignee     |
 | `claim_task`   | Atomically assign a task to yourself and set it to in_progress       |
 | `close_task`   | Close a completed task, optionally showing newly unblocked tasks     |
@@ -344,6 +344,38 @@ For larger features, fan out tasks to multiple CC terminals:
 ```
 
 Now Cursor can switch channels to communicate with different implementers.
+
+## Task-Message Linking
+
+Messages and tasks can be cross-referenced using the `task_id` parameter on `send_message` and `reply`. When provided:
+
+- The message gets a `refs:<task_id>` label, making it discoverable from the task
+- `show_task` includes a `linked_messages` array showing all messages referencing that task
+- When replying with a `task_id`, a summary of the reply is auto-appended to the task's notes
+
+This closes the gap between "agents talking about work" and "the work itself" — context flows in both directions.
+
+## CLI Commands
+
+### `agent-messenger log`
+
+View message history from the terminal:
+
+```bash
+agent-messenger log                     # Last 20 messages, chronological
+agent-messenger log -n 50               # Last 50 messages
+agent-messenger log --agent claude-code # Filter by sender
+agent-messenger log --channel design    # Filter by channel
+agent-messenger log --thread <msg-id>   # Show a conversation thread
+```
+
+### `agent-messenger status`
+
+See unread counts, recent messages, active agents, and channels at a glance:
+
+```bash
+agent-messenger status
+```
 
 ## Dolt Server Management
 
