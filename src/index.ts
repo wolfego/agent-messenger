@@ -18,6 +18,9 @@ import { updateTaskSchema, handleUpdateTask } from "./tools/update-task.js";
 import { claimTaskSchema, handleClaimTask } from "./tools/claim-task.js";
 import { closeTaskSchema, handleCloseTask } from "./tools/close-task.js";
 import { listAgentsSchema, handleListAgents } from "./tools/list-agents.js";
+import { manageDepsSchema, handleManageDeps } from "./tools/manage-deps.js";
+import { blockedTasksSchema, handleBlockedTasks } from "./tools/blocked-tasks.js";
+import { projectStatsSchema, handleProjectStats } from "./tools/project-stats.js";
 import { cleanStalePresence, registerPresence } from "./beads.js";
 
 const config = parseConfig();
@@ -142,6 +145,27 @@ server.tool(
   "List agents currently online in this project (based on presence records)",
   listAgentsSchema,
   handleListAgents(config)
+);
+
+server.tool(
+  "manage_deps",
+  "Add, remove, or list dependencies between tasks (blocks, tracks, related, parent-child, etc.)",
+  manageDepsSchema,
+  handleManageDeps(config)
+);
+
+server.tool(
+  "blocked_tasks",
+  "Show tasks that are blocked by unresolved dependencies (computed from dependency graph, not status label)",
+  blockedTasksSchema,
+  handleBlockedTasks(config)
+);
+
+server.tool(
+  "project_stats",
+  "Get project health snapshot: issue counts by state, ready work, lead time, recent activity",
+  projectStatsSchema,
+  handleProjectStats(config)
 );
 
 async function main() {

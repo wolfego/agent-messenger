@@ -61,15 +61,18 @@ Both agents connect to the same MCP server with different identities. Messages r
 
 **Tasks:**
 
-| Tool           | Description                                             |
-| -------------- | ------------------------------------------------------- |
-| `create_task`  | Create a task in Beads                                  |
-| `create_epic`  | Create an epic for phased planning                      |
-| `list_tasks`   | List tasks with filters (status, priority, ready-only)  |
-| `show_task`    | Show task details and linked messages                   |
-| `update_task`  | Update status, notes, labels, priority, or assignee     |
-| `claim_task`   | Atomically assign and start a task                      |
-| `close_task`   | Close a completed task                                  |
+| Tool             | Description                                             |
+| ---------------- | ------------------------------------------------------- |
+| `create_task`    | Create a task in Beads                                  |
+| `create_epic`    | Create an epic for phased planning                      |
+| `list_tasks`     | List tasks with filters (status, priority, ready-only)  |
+| `show_task`      | Show task details and linked messages                   |
+| `update_task`    | Update status, notes, labels, priority, or assignee (smart-routes close/reopen) |
+| `claim_task`     | Atomically assign and start a task                      |
+| `close_task`     | Close a completed task                                  |
+| `manage_deps`    | Add, remove, or list dependencies between tasks         |
+| `blocked_tasks`  | Show tasks blocked by unresolved dependencies           |
+| `project_stats`  | Project health snapshot: counts, ready work, lead time  |
 
 **Discovery:**
 
