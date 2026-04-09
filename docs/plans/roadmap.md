@@ -147,27 +147,21 @@ Epics 9.1 (Context Inlining), 9.2 (Workflow Templates), and 9.3 (Approval Gates)
 
 ---
 
-## Phase 10: Scale & Polish
+## ~~Phase 10: Scale & Polish~~ — Cancelled
 
-**Goal:** Handle complex multi-agent topologies and keep the system clean over time.
+### Epic 10.1: Presence & Discovery (partial ✅, remaining cancelled)
 
-### Epic 10.1: Presence & Discovery (partial ✅)
+Startup registration + cleanup + `list_agents` shipped. Heartbeat and deregister-on-shutdown cancelled — startup cleanup is sufficient, and heartbeat adds complexity for marginal signal.
 
-| Task | Description | Priority | Status |
-|------|-------------|----------|--------|
-| 10.1.1 | Presence registration on startup, stale session cleanup when same baseId re-registers | P3 | ✅ |
-| 10.1.2 | `list_agents` MCP tool: shows which agents are currently active (open presence records) | P3 | ✅ |
-| 10.1.3 | `agent-messenger status` shows live/stale agents | P3 | ✅ |
-| 10.1.4 | Periodic heartbeat (not just on startup) | P3 | Open |
-| 10.1.5 | Deregister presence on clean shutdown | P3 | Open |
+| Task | Description | Status |
+|------|-------------|--------|
+| 10.1.1 | Presence registration on startup, stale session cleanup | ✅ |
+| 10.1.2 | `list_agents` MCP tool | ✅ |
+| 10.1.3 | `agent-messenger status` shows agents | ✅ |
 
-### Epic 10.2: Message Lifecycle
+### ~~Epic 10.2: Message Lifecycle~~ — Cancelled
 
-| Task | Description | Priority |
-|------|-------------|----------|
-| 10.2.1 | Auto-close messages on reply (configurable) | P3 |
-| 10.2.2 | Message TTL: ephemeral messages that expire after N hours | P3 |
-| 10.2.3 | Compaction: archive old closed threads to reduce `bd list` noise | P3 |
+Message noise is not a real problem at current scale. Auto-close changes thread semantics. TTL and compaction are premature.
 
 ### ~~Epic 10.3: Multi-Agent Fan-Out~~ — Cancelled
 
