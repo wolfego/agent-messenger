@@ -4,6 +4,7 @@ import { argv, exit } from "node:process";
 import { init } from "./init.js";
 import { doctor } from "./doctor.js";
 import { status } from "./status.js";
+import { log } from "./log.js";
 
 const command = argv[2];
 const args = argv.slice(3);
@@ -16,10 +17,18 @@ Usage:
   agent-messenger init     Set up agent-messenger in the current project
   agent-messenger doctor   Diagnose common setup issues
   agent-messenger status   Show message counts, recent activity, and agents
+  agent-messenger log      Show message history in chronological order
   agent-messenger help     Show this help message
 
 Options for status:
   --beads-dir <path>  Path to .beads directory (default: auto-detect)
+
+Options for log:
+  --beads-dir <path>  Path to .beads directory (default: auto-detect)
+  -a, --agent <id>    Filter by agent (shows messages from this agent)
+  -c, --channel <ch>  Filter by channel
+  -n, --limit <num>   Number of messages to show (default: 20)
+  -t, --thread <id>   Show a specific conversation thread
 
 Options for init:
   --cursor-id <id>    Cursor agent ID (default: cursor-opus)
@@ -39,6 +48,9 @@ async function main(): Promise<void> {
       break;
     case "status":
       await status(args);
+      break;
+    case "log":
+      await log(args);
       break;
     case "help":
     case "--help":
