@@ -45,23 +45,42 @@ Both agents connect to the same MCP server with different identities. Messages r
 
 ## Tools
 
-| Tool                 | Description                              |
-| -------------------- | ---------------------------------------- |
-| `send_message`       | Send a message to another agent          |
-| `check_inbox`        | Check for unread messages                |
-| `reply`              | Reply to a message (auto-threads)        |
-| `get_thread`         | Get full conversation thread             |
-| `list_conversations` | List all conversations                   |
-| `mark_read`          | Mark a message as read                   |
-| `set_channel`        | Join a channel for multi-agent isolation |
-| `set_identity`       | Rename this agent instance               |
-| `whoami`             | Show identity, base ID, and channel      |
+**Messaging:**
+
+| Tool                 | Description                                        |
+| -------------------- | -------------------------------------------------- |
+| `send_message`       | Send a message (supports `task_id` for linking)    |
+| `check_inbox`        | Check for unread messages                          |
+| `reply`              | Reply to a message (auto-threads, optional `task_id`) |
+| `get_thread`         | Get full conversation thread                       |
+| `list_conversations` | List all conversations                             |
+| `mark_read`          | Mark a message as read                             |
+| `set_channel`        | Join a channel for multi-agent isolation            |
+| `set_identity`       | Rename this agent instance                         |
+| `whoami`             | Show identity, base ID, and channel                |
+
+**Tasks:**
+
+| Tool           | Description                                             |
+| -------------- | ------------------------------------------------------- |
+| `create_task`  | Create a task in Beads                                  |
+| `list_tasks`   | List tasks with filters (status, priority, ready-only)  |
+| `show_task`    | Show task details and linked messages                   |
+| `update_task`  | Update status, notes, labels, priority, or assignee     |
+| `claim_task`   | Atomically assign and start a task                      |
+| `close_task`   | Close a completed task                                  |
+
+**Discovery:**
+
+| Tool           | Description                                 |
+| -------------- | ------------------------------------------- |
+| `list_agents`  | Show agents currently online                |
 
 ## Shortcuts
 
-**Cursor** (via rules): `#help` `#cm` `#sm` `#ch` `#id` `#wi`
+**Cursor** (via rules): `#help` `#cm` `#sm` `#ch` `#id` `#wi` `#ct` `#lt` `#st` `#rt` `#la`
 
-**Claude Code** (via skills): `/am` `/cm` `/sm` `/ch` `/id` `/wi`
+**Claude Code** (via skills): `/am` `/cm` `/sm` `/ch` `/id` `/wi` `/ct` `/lt` `/st` `/rt` `/la`
 
 ## Identity & Multi-Agent
 
@@ -75,11 +94,13 @@ When multiple agent windows/terminals are open in the same project, you have two
 
 ## CLI Commands
 
-| Command                  | Description                               |
-| ------------------------ | ----------------------------------------- |
-| `agent-messenger init`   | Set up agent-messenger in current project |
-| `agent-messenger doctor` | Diagnose common setup issues              |
-| `agent-messenger help`   | Show help                                 |
+| Command                  | Description                                  |
+| ------------------------ | -------------------------------------------- |
+| `agent-messenger init`   | Set up agent-messenger in current project    |
+| `agent-messenger doctor` | Diagnose common setup issues                 |
+| `agent-messenger status` | Show unread counts, agents, and channels     |
+| `agent-messenger log`    | View message history (filters, thread view)  |
+| `agent-messenger help`   | Show help                                    |
 
 ### Init options
 

@@ -16,8 +16,7 @@ function makeConfig(overrides: Partial<Config> = {}): Config {
 
 describe("identity system", () => {
   describe("session ID format", () => {
-    it("session suffix is 4 hex characters", async () => {
-      // Import parseConfig to test actual session ID generation
+    it("session suffix includes env hint and random hex", async () => {
       const { parseConfig } = await import("../src/config.js");
       const savedArgv = [...process.argv];
       process.argv = ["node", "index.js", "--agent-id", "test"];
@@ -25,7 +24,8 @@ describe("identity system", () => {
       process.argv = savedArgv;
 
       const suffix = config.agentId.replace("test-", "");
-      expect(suffix).toMatch(/^[0-9a-f]{4}$/);
+      // Format is <env>-<2hex> when env is detected, or <4hex> when unknown
+      expect(suffix).toMatch(/^(.+-[0-9a-f]{2}|[0-9a-f]{4})$/);
     });
 
     it("generates different session IDs on each call", async () => {

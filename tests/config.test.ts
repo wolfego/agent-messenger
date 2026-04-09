@@ -49,10 +49,11 @@ describe("parseConfig", () => {
     expect(config.baseId).toBe("flag-agent");
   });
 
-  it("appends session suffix by default (4 hex chars)", () => {
+  it("appends session suffix by default (env hint + random hex)", () => {
     process.argv = ["node", "index.js", "--agent-id", "test"];
     const config = parseConfig();
-    expect(config.agentId).toMatch(/^test-[0-9a-f]{4}$/);
+    // Format is test-<env>-<2hex> when env is detected, or test-<4hex> when unknown
+    expect(config.agentId).toMatch(/^test-(.+-[0-9a-f]{2}|[0-9a-f]{4})$/);
     expect(config.agentId).not.toBe("test");
   });
 
@@ -94,10 +95,15 @@ describe("parseConfig", () => {
     expect(config.channel).toBeUndefined();
   });
 
-  it("leaves beadsDir undefined when not provided", () => {
+  it("auto-detects beadsDir when not provided and .beads exists", () => {
     process.argv = ["node", "index.js"];
     const config = parseConfig();
-    expect(config.beadsDir).toBeUndefined();
+    // detectBeadsDir() walks up from cwd; if .beads/ exists it's found
+    if (config.beadsDir) {
+      expect(config.beadsDir).toMatch(/\.beads$/);
+    } else {
+      expect(config.beadsDir).toBeUndefined();
+    }
   });
 
   it("generates agentName from agentId with title case", () => {

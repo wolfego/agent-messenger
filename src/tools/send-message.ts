@@ -10,6 +10,7 @@ export const sendMessageSchema = {
   action: z.string().optional().describe("What the recipient should do: review, brainstorm, implement, reply"),
   priority: z.enum(["normal", "urgent"]).optional().describe("Message priority (default: normal)"),
   worktree: z.string().optional().describe("Suggest the recipient use a git worktree with this name for isolation (e.g. 'add-tests'). The recipient's agent will present this as an option to the user, not execute automatically."),
+  task_id: z.string().optional().describe("Link this message to a Beads task ID (e.g. 'agent-messenger-z1b.1'). Adds a refs:<id> label for cross-referencing."),
 };
 
 const KNOWN_AGENTS = ["cursor-opus", "claude-code", "cursor", "cc"];
@@ -35,6 +36,7 @@ export function handleSendMessage(config: Config) {
     action?: string;
     priority?: "normal" | "urgent";
     worktree?: string;
+    task_id?: string;
   }) => {
     let body = args.body;
     if (args.worktree) {
@@ -48,6 +50,7 @@ export function handleSendMessage(config: Config) {
       contextFiles: args.context_files,
       action: args.action,
       priority: args.priority,
+      taskId: args.task_id,
     });
 
     let warning: string | undefined;
@@ -58,6 +61,7 @@ export function handleSendMessage(config: Config) {
 
     const response: Record<string, unknown> = { message_id: result.id, status: "sent" };
     if (args.worktree) response["worktree_suggested"] = args.worktree;
+    if (args.task_id) response["linked_task"] = args.task_id;
     if (warning) response["warning"] = warning;
 
     return {

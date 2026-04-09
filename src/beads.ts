@@ -77,10 +77,12 @@ export function createMessage(
     contextFiles?: string[];
     action?: string;
     priority?: "normal" | "urgent";
+    taskId?: string;
   }
 ): BeadsMessage {
   const labels = [`to:${params.to}`, `from:${config.agentId}`, "unread"];
   if (params.action) labels.push(`action:${params.action}`);
+  if (params.taskId) labels.push(`refs:${params.taskId}`);
   const ch = channelLabel(config);
   if (ch) labels.push(ch);
 
@@ -137,7 +139,7 @@ export function checkInbox(
 
 export function replyToMessage(
   config: Config,
-  params: { messageId: string; body: string; contextFiles?: string[] }
+  params: { messageId: string; body: string; contextFiles?: string[]; taskId?: string }
 ): BeadsMessage {
   const original = showMessage(config, params.messageId);
   const originalFrom = original.labels?.find((l) => l.startsWith("from:"))?.slice(5) ?? "unknown";
@@ -151,6 +153,7 @@ export function replyToMessage(
   const labels = [`to:${originalFrom}`, `from:${config.agentId}`, "unread"];
   const originalChannel = original.labels?.find((l) => l.startsWith("channel:"));
   if (originalChannel) labels.push(originalChannel);
+  if (params.taskId) labels.push(`refs:${params.taskId}`);
 
   const args = [
     "create",
@@ -162,7 +165,17 @@ export function replyToMessage(
     "--priority", String(original.priority),
   ];
 
-  return bdJson<BeadsMessage>(config, args);
+  const result = bdJson<BeadsMessage>(config, args);
+
+  if (params.taskId) {
+    const summary = body.length > 200 ? body.slice(0, 197) + "..." : body;
+    const note = `[${config.agentId} → ${originalFrom}] ${subject}: ${summary}`;
+    try {
+      bdExec(config, ["update", params.taskId, "--append-notes", note]);
+    } catch { /* best-effort — don't fail the reply if task update fails */ }
+  }
+
+  return result;
 }
 
 export function showMessage(config: Config, messageId: string): BeadsMessage {
@@ -262,6 +275,20 @@ function findRootId(config: Config, msg: BeadsMessage): string {
     return findRootId(config, parentMsg);
   } catch {
     return msg.id;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Task-Message Linking
+// ---------------------------------------------------------------------------
+
+export function listLinkedMessages(config: Config, taskId: string): BeadsMessage[] {
+  try {
+    return bdJson<BeadsMessage[]>(config, [
+      "list", "--type", "message", "--label", `refs:${taskId}`,
+    ]);
+  } catch {
+    return [];
   }
 }
 
