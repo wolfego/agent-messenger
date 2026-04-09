@@ -159,6 +159,7 @@ When CC starts, it will prompt you to accept the new MCP server.
 | Tool           | Description                                                          |
 | -------------- | -------------------------------------------------------------------- |
 | `create_task`  | Create a new task in Beads (title, description, priority, labels, deps, assignee) |
+| `create_epic`  | Create an epic for phased planning (groups related tasks under a parent)           |
 | `list_tasks`   | List tasks with filters (status, assignee, priority, ready-only)     |
 | `show_task`    | Show detailed info about a task; includes linked messages if any     |
 | `update_task`  | Update status, description, notes, labels, priority, or assignee     |

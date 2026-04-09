@@ -64,6 +64,7 @@ Both agents connect to the same MCP server with different identities. Messages r
 | Tool           | Description                                             |
 | -------------- | ------------------------------------------------------- |
 | `create_task`  | Create a task in Beads                                  |
+| `create_epic`  | Create an epic for phased planning                      |
 | `list_tasks`   | List tasks with filters (status, priority, ready-only)  |
 | `show_task`    | Show task details and linked messages                   |
 | `update_task`  | Update status, notes, labels, priority, or assignee     |

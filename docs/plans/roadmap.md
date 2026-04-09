@@ -121,7 +121,7 @@ Confirm agent-messenger works on macOS (and Linux if possible).
 | 8.1.5 | Implement `update_task`: map to `bd update` for status, notes, description, labels, priority, assignee | P1 | ✅ |
 | 8.1.6 | Implement `claim_task`: map to `bd update --claim` (atomic assign + in_progress) | P2 | ✅ |
 | 8.1.7 | Implement `close_task`: map to `bd close` | P2 | ✅ |
-| 8.1.8 | Implement `create_epic`: map to `bd create --type epic` for phased planning | P2 | Open |
+| 8.1.8 | Implement `create_epic`: map to `bd create --type epic` for phased planning | P2 | ✅ |
 
 ### Epic 8.2: Task ↔ Message Linking ✅
 
