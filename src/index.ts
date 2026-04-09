@@ -11,6 +11,7 @@ import { handleWhoami } from "./tools/whoami.js";
 import { setChannelSchema, handleSetChannel } from "./tools/set-channel.js";
 import { setIdentitySchema, handleSetIdentity } from "./tools/set-identity.js";
 import { createTaskSchema, handleCreateTask } from "./tools/create-task.js";
+import { createEpicSchema, handleCreateEpic } from "./tools/create-epic.js";
 import { listTasksSchema, handleListTasks } from "./tools/list-tasks.js";
 import { showTaskSchema, handleShowTask } from "./tools/show-task.js";
 import { updateTaskSchema, handleUpdateTask } from "./tools/update-task.js";
@@ -92,6 +93,13 @@ server.tool(
   "Create a new task in the Beads issue tracker",
   createTaskSchema,
   handleCreateTask(config)
+);
+
+server.tool(
+  "create_epic",
+  "Create a new epic for phased planning (groups related tasks under a parent)",
+  createEpicSchema,
+  handleCreateEpic(config)
 );
 
 server.tool(
