@@ -95,7 +95,6 @@ Confirm agent-messenger works on macOS (and Linux if possible).
 | 7.1.1 | Implement `status` subcommand: show unread counts per agent, latest message summaries | P1 | ✅ |
 | 7.1.2 | Show active channels and which agents are on each | P2 | ✅ |
 | 7.1.3 | Show agent session IDs (who's been active recently based on message timestamps) | P2 | ✅ |
-| 7.1.4 | Color-coded terminal output (unread = bold, urgent = red) | P3 | Open |
 
 ### Epic 7.2: `agent-messenger log` Command ✅
 
@@ -142,33 +141,9 @@ Confirm agent-messenger works on macOS (and Linux if possible).
 
 ---
 
-## Phase 9: Workflow Automation
+## Phase 9: ~~Workflow Automation~~ — Cancelled
 
-**Goal:** Reduce the human-in-the-loop overhead for common multi-agent workflows.
-
-### Epic 9.1: Context Inlining
-
-| Task | Description | Priority |
-|------|-------------|----------|
-| 9.1.1 | Add `inline_context` boolean to `send_message` — when true, read `context_files` and embed content in message body | P2 |
-| 9.1.2 | Size guard: warn or truncate if inlined content exceeds a threshold (e.g. 50k chars) | P3 |
-
-### Epic 9.2: Workflow Templates
-
-| Task | Description | Priority |
-|------|-------------|----------|
-| 9.2.1 | Design workflow schema: named sequences of steps with agent assignments and transitions | P2 |
-| 9.2.2 | Implement `#workflow design-review` — Cursor brainstorms → sends to CC → CC reviews → sends reply → Cursor synthesizes | P3 |
-| 9.2.3 | Implement `#workflow code-review` — Cursor generates diff → sends to CC → CC reviews → replies with findings | P3 |
-| 9.2.4 | Store workflow state in Beads so session restarts can resume mid-workflow | P3 |
-
-### Epic 9.3: Approval Gates
-
-| Task | Description | Priority |
-|------|-------------|----------|
-| 9.3.1 | Add `pending_approval` message status — agent marks output as needing human sign-off | P3 |
-| 9.3.2 | `agent-messenger approve <id>` CLI command for human to approve from terminal | P3 |
-| 9.3.3 | `#approve` / `/approve` shortcuts for agents to check and relay approval status | P3 |
+Epics 9.1 (Context Inlining), 9.2 (Workflow Templates), and 9.3 (Approval Gates) were cancelled. The manual flow (`#cm`/`/cm` at each step) is simple enough, agents already handle confirmation inline, and the "read this file" friction was deemed acceptable.
 
 ---
 
@@ -194,13 +169,9 @@ Confirm agent-messenger works on macOS (and Linux if possible).
 | 10.2.2 | Message TTL: ephemeral messages that expire after N hours | P3 |
 | 10.2.3 | Compaction: archive old closed threads to reduce `bd list` noise | P3 |
 
-### Epic 10.3: Multi-Agent Fan-Out
+### ~~Epic 10.3: Multi-Agent Fan-Out~~ — Cancelled
 
-| Task | Description | Priority |
-|------|-------------|----------|
-| 10.3.1 | `broadcast` tool: send a message to all agents (or all on a channel) | P3 |
-| 10.3.2 | Fan-out pattern: split a plan into N tasks, assign to available agents, collect results | P4 |
-| 10.3.3 | Integrate with Beads `--waits-for` gate pattern for fan-out/fan-in orchestration | P4 |
+Agents can coordinate fan-out natively without special tooling.
 
 ---
 
