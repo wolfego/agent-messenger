@@ -82,9 +82,9 @@ Both agents connect to the same MCP server with different identities. Messages r
 
 ## Shortcuts
 
-**Cursor** (via rules): `#help` `#cm` `#sm` `#ch` `#id` `#wi` `#ct` `#lt` `#st` `#rt` `#la`
+**Cursor** (via rules): `#help` `#cm` `#sm` `#ch` `#id` `#wi` `#ct` `#lt` `#st` `#rt` `#la` `#orchestrate`
 
-**Claude Code** (via skills): `/am` `/cm` `/sm` `/ch` `/id` `/wi` `/ct` `/lt` `/st` `/rt` `/la`
+**Claude Code** (via skills): `/am` `/cm` `/sm` `/ch` `/id` `/wi` `/ct` `/lt` `/st` `/rt` `/la` `/orchestrate`
 
 ## Identity & Multi-Agent
 

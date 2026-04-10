@@ -138,6 +138,12 @@ When CC starts, it will prompt you to accept the new MCP server.
 | -------------- | ------ | ----------- |
 | List agents    | `#la`  | `/la`       |
 
+**Workflow:**
+
+| Action         | Cursor         | Claude Code    |
+| -------------- | -------------- | -------------- |
+| Orchestrate    | `#orchestrate` | `/orchestrate` |
+
 ## MCP Tools Reference
 
 **Messaging:**
@@ -262,76 +268,54 @@ CC calls `check_inbox()`, sees the message, reads the file, and calls `reply(mes
 
 Cursor calls `check_inbox()`, reads the reply, and acts on it.
 
-### Superpowers Development Workflow
+### Orchestrate Workflow
 
-A full feature development cycle using agent-messenger to coordinate between agents. The human drives each step with a short command, and the agents communicate directly instead of requiring copy-paste.
+`#orchestrate <feature>` (Cursor) activates a structured development workflow where Cursor is the **orchestrator** and Claude Code is the **implementer**. Built on the [superpowers](https://github.com/superpowers-ai/superpowers) process for rigor. Optional — abandon at any step with no cleanup.
 
-#### Phase 1: Brainstorm
+**Roles and superpowers skills used:**
 
-```
-[Cursor] User: "Brainstorm approaches for adding WebSocket support to our API.
-               Send your brainstorm to cc for challenge and counter-proposals."
-```
+| Phase | Cursor (orchestrator) | Claude Code (implementer) | Superpowers skills |
+|---|---|---|---|
+| Brainstorm | Explores approaches, presents trade-offs | Challenges assumptions, proposes alternatives | `brainstorming` (Cursor) |
+| Spec | Writes spec doc, runs spec review loop | Verifies completeness, flags gaps | `brainstorming` doc step (Cursor) |
+| Plan | Reviews the plan for TDD steps, ordering, coverage | Writes bite-sized implementation plan | `writing-plans` (CC) |
+| Implementation | Monitors, unblocks, answers design questions | Implements with TDD, spec+quality review per task | `subagent-driven-development` or `executing-plans` (CC), `test-driven-development` |
+| Finish | Reviews changes, verifies tests | Presents merge/PR/keep/discard options | `finishing-a-development-branch` (CC), `verification-before-completion` |
 
-Cursor brainstorms, then calls `send_message(to: "claude-code", ...)`.
-
-```
-[CC] User: /cm
-```
-
-CC reads the brainstorm, challenges assumptions, adds alternatives, and calls `reply(...)`.
+**Example flow:**
 
 ```
-[Cursor] User: #cm — then "synthesize both perspectives into a design"
+[Cursor] User: #orchestrate add WebSocket support
 ```
 
-#### Phase 2: Design & Spec
+Cursor uses `superpowers:brainstorming` — explores context, asks clarifying questions one at a time, proposes 2-3 approaches, presents design. After user approves: "Shall I send to CC for challenge?"
 
 ```
-[Cursor] User: "Write the design doc at docs/websocket-design.md, then send it
-               to cc for architecture review"
+[Cursor] User: y
 ```
+
+Cursor sends with `action: challenge`. Prompts user to switch.
 
 ```
 [CC] User: /cm
 ```
 
-CC reviews the design for edge cases, security concerns, and scalability. Replies with findings.
+CC challenges the design, replies with counter-proposals. User switches back.
 
 ```
-[Cursor] User: #cm — then "address the feedback and write the spec"
+[Cursor] User: #cm
 ```
 
-#### Phase 3: Plan Review
+Cursor synthesizes both perspectives, writes spec to `docs/superpowers/specs/`, runs spec review loop. After user approves written spec: "Shall I send to CC for verification and plan writing?"
 
 ```
-[Cursor] User: "Write the implementation plan at docs/plans/websocket.md,
-               then send to cc for review"
-```
-
-```
+[Cursor] User: y
 [CC] User: /cm
 ```
 
-CC reviews the plan for task ordering, missing dependencies, and estimates. Replies.
+CC verifies the spec, then uses `superpowers:writing-plans` to create a bite-sized TDD plan at `docs/superpowers/plans/`. Cursor reviews the plan. On approval, CC implements using `superpowers:subagent-driven-development` (TDD, two-stage review per task), then finishes with `superpowers:finishing-a-development-branch`.
 
-#### Phase 4: Implementation
-
-```
-[Cursor] User: #cm — then "incorporate feedback and begin implementing step 1"
-```
-
-#### Phase 5: Code Review
-
-```
-[Cursor] User: "send the diff of this branch to cc for code review"
-```
-
-```
-[CC] User: /cm
-```
-
-CC reviews the code, replies with findings. Cursor addresses them.
+**At each step, the user's role is: approve/redirect, then switch contexts.** The agents propose the next action and use superpowers skills for rigor — the user doesn't need to remember the workflow or the process.
 
 ### Multi-Agent Parallel Implementation
 
