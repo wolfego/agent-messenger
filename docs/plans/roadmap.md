@@ -139,6 +139,17 @@ Confirm agent-messenger works on macOS (and Linux if possible).
 | 8.3.2 | CC skills: `/ct`, `/lt`, `/st`, `/rt`, `/la` | P2 | ✅ |
 | 8.3.3 | Update `#help` / `/am` to include task commands | P2 | ✅ |
 
+### Epic 8.4: Beads-MCP Task Parity ✅
+
+Close remaining task management gaps with beads-mcp: dependency management, blocked task queries, project statistics, and smart update routing.
+
+| Task | Description | Priority | Status |
+|------|-------------|----------|--------|
+| 8.4.1 | `manage_deps` tool: add, remove, list dependencies between tasks (10 dep types) | P1 | ✅ |
+| 8.4.2 | `blocked_tasks` tool: show graph-blocked issues with optional epic scoping | P1 | ✅ |
+| 8.4.3 | `project_stats` tool: project health snapshot (counts, ready work, lead time, activity) | P2 | ✅ |
+| 8.4.4 | Smart update routing: `update_task` auto-routes `status=closed` to close and `status=open` on closed task to reopen, emitting proper lifecycle events | P2 | ✅ |
+
 ---
 
 ## Phase 9: ~~Workflow Automation~~ — Cancelled

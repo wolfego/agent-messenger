@@ -156,15 +156,18 @@ When CC starts, it will prompt you to accept the new MCP server.
 
 **Tasks:**
 
-| Tool           | Description                                                          |
-| -------------- | -------------------------------------------------------------------- |
-| `create_task`  | Create a new task in Beads (title, description, priority, labels, deps, assignee) |
-| `create_epic`  | Create an epic for phased planning (groups related tasks under a parent)           |
-| `list_tasks`   | List tasks with filters (status, assignee, priority, ready-only)     |
-| `show_task`    | Show detailed info about a task; includes linked messages if any     |
-| `update_task`  | Update status, description, notes, labels, priority, or assignee     |
-| `claim_task`   | Atomically assign a task to yourself and set it to in_progress       |
-| `close_task`   | Close a completed task, optionally showing newly unblocked tasks     |
+| Tool             | Description                                                          |
+| ---------------- | -------------------------------------------------------------------- |
+| `create_task`    | Create a new task in Beads (title, description, priority, labels, deps, assignee) |
+| `create_epic`    | Create an epic for phased planning (groups related tasks under a parent)           |
+| `list_tasks`     | List tasks with filters (status, assignee, priority, ready-only)     |
+| `show_task`      | Show detailed info about a task; includes linked messages if any     |
+| `update_task`    | Update status, description, notes, labels, priority, or assignee. Smart-routes: `status=closed` triggers proper close with lifecycle event; `status=open` on a closed task triggers reopen |
+| `claim_task`     | Atomically assign a task to yourself and set it to in_progress       |
+| `close_task`     | Close a completed task, optionally showing newly unblocked tasks     |
+| `manage_deps`    | Add, remove, or list dependencies between tasks. Supports 10 dependency types: blocks, tracks, related, parent-child, discovered-from, until, caused-by, validates, relates-to, supersedes |
+| `blocked_tasks`  | Show tasks blocked by unresolved dependencies (graph-computed, not just status label). Optional `parent` filter to scope to an epic subtree |
+| `project_stats`  | Project health snapshot: issue counts by state, ready work, average lead time, recent 24h activity |
 
 **Discovery:**
 

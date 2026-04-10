@@ -1,13 +1,13 @@
 import { z } from "zod";
 import type { Config } from "../config.js";
-import { updateTask } from "../tasks.js";
+import { updateTask, closeTask, reopenTask, showTask } from "../tasks.js";
 
 export const updateTaskSchema = {
   task_id: z.string().describe("Task ID to update"),
-  status: z.string().optional().describe("New status: open, in_progress, blocked, closed"),
+  status: z.string().optional().describe("New status: open, in_progress, blocked, closed. Setting 'closed' auto-routes to close with reason. Setting 'open' on a closed task auto-routes to reopen."),
   title: z.string().optional().describe("New title"),
   description: z.string().optional().describe("New description (replaces existing)"),
-  notes: z.string().optional().describe("Append notes (added to existing notes with newline)"),
+  notes: z.string().optional().describe("Append notes (added to existing notes with newline). Also used as reason when closing or reopening."),
   priority: z.string().optional().describe("New priority (P0-P4 or 0-4)"),
   assignee: z.string().optional().describe("New assignee"),
   add_labels: z.array(z.string()).optional().describe("Labels to add"),
@@ -30,6 +30,38 @@ export function handleUpdateTask(config: Config) {
     due?: string;
     estimate?: number;
   }) => {
+    // Smart routing: status transitions to close/reopen use dedicated commands
+    // so Beads emits proper lifecycle events
+    if (args.status === "closed") {
+      const result = closeTask(config, { task_id: args.task_id, reason: args.notes });
+      return {
+        content: [{
+          type: "text" as const,
+          text: JSON.stringify(
+            { task_id: result.id, title: result.title, status: result.status, closed: true },
+            null, 2
+          ),
+        }],
+      };
+    }
+
+    if (args.status === "open") {
+      const current = showTask(config, { task_id: args.task_id });
+      const task = Array.isArray(current) ? current[0]! : current;
+      if (task.status === "closed") {
+        const result = reopenTask(config, { task_id: args.task_id, reason: args.notes });
+        return {
+          content: [{
+            type: "text" as const,
+            text: JSON.stringify(
+              { task_id: result.id, title: result.title, status: result.status, reopened: true },
+              null, 2
+            ),
+          }],
+        };
+      }
+    }
+
     const result = updateTask(config, args);
 
     return {

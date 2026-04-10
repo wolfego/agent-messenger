@@ -181,3 +181,80 @@ export function closeTask(
 
   return bdJson<BeadsTask>(config, args);
 }
+
+export function reopenTask(
+  config: Config,
+  params: { task_id: string; reason?: string }
+): BeadsTask {
+  const args = ["reopen", params.task_id];
+  if (params.reason) args.push("--reason", params.reason);
+
+  return bdJson<BeadsTask>(config, args);
+}
+
+// ---------------------------------------------------------------------------
+// Dependencies
+// ---------------------------------------------------------------------------
+
+export interface DepRecord {
+  from_id: string;
+  to_id: string;
+  dependency_type: string;
+  from_title?: string;
+  to_title?: string;
+  from_status?: string;
+  to_status?: string;
+}
+
+export function addDep(
+  config: Config,
+  params: { issue_id: string; depends_on: string; type?: string }
+): string {
+  const args = ["dep", "add", params.issue_id, params.depends_on];
+  if (params.type) args.push("--type", params.type);
+  return bdExec(config, args);
+}
+
+export function removeDep(
+  config: Config,
+  params: { issue_id: string; depends_on: string }
+): string {
+  return bdExec(config, ["dep", "remove", params.issue_id, params.depends_on]);
+}
+
+export function listDeps(
+  config: Config,
+  params: { issue_id: string; direction?: "up" | "down"; type?: string }
+): DepRecord[] {
+  const args = ["dep", "list", params.issue_id];
+  if (params.direction) args.push("--direction", params.direction);
+  if (params.type) args.push("--type", params.type);
+  return bdJson<DepRecord[]>(config, args);
+}
+
+// ---------------------------------------------------------------------------
+// Blocked tasks
+// ---------------------------------------------------------------------------
+
+export function blockedTasks(
+  config: Config,
+  params: { parent?: string }
+): BeadsTask[] {
+  const args = ["blocked"];
+  if (params.parent) args.push("--parent", params.parent);
+  return bdJson<BeadsTask[]>(config, args);
+}
+
+// ---------------------------------------------------------------------------
+// Project stats
+// ---------------------------------------------------------------------------
+
+export function projectStats(
+  config: Config,
+  params: { assigned_only?: boolean; include_activity?: boolean }
+): unknown {
+  const args = ["status"];
+  if (params.assigned_only) args.push("--assigned");
+  if (params.include_activity === false) args.push("--no-activity");
+  return bdJson<unknown>(config, args);
+}
