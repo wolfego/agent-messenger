@@ -383,6 +383,7 @@ Run `agent-messenger doctor` first — it checks everything automatically.
 
 | Problem                           | Fix                                                                            |
 | --------------------------------- | ------------------------------------------------------------------------------ |
+| `agent-messenger` not recognized (Windows) | npm global bin isn't in PATH. Run `npm prefix -g` to find it, then add it: `[Environment]::SetEnvironmentVariable("PATH", $env:PATH + ";$(npm prefix -g)", "User")` and restart your terminal |
 | `bd` not found                    | Install Beads and ensure `bd` is on your PATH                                  |
 | "driver: bad connection"          | Run `bd dolt start` — the Dolt server isn't running                            |
 | "embedded Dolt requires CGO"      | Use `bd init --server` instead of `bd init` (required on Windows)              |
