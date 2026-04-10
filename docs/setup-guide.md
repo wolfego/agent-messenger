@@ -4,17 +4,17 @@ An MCP server that lets AI agents (Cursor, Claude Code) send messages to each ot
 
 ## Automated Setup (Recommended)
 
-If agent-messenger is published to npm:
-
 ```bash
-npm install -g agent-messenger
+npm install -g cursor-claude-messenger
 cd your-project
 agent-messenger init
 ```
 
-If running from source (not yet published):
+Or from source:
 
 ```bash
+git clone https://github.com/wolfego/agent-messenger.git
+cd agent-messenger && npm install && npm run build
 cd your-project
 node /path/to/agent-messenger/dist/cli/index.js init
 ```
@@ -48,7 +48,7 @@ If you prefer manual control or the installer doesn't fit your setup:
 ### 1. Install agent-messenger
 
 ```bash
-npm install -g agent-messenger
+npm install -g cursor-claude-messenger
 ```
 
 Or clone and build from source:

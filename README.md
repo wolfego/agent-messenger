@@ -5,15 +5,13 @@
 
 MCP server for AI agent-to-agent messaging. Lets Cursor and Claude Code agents send messages, reply in threads, and coordinate work — backed by [Beads](https://github.com/steveyegge/beads) for persistent, version-controlled storage.
 
-> **Status:** Pre-release (v0.1.0). npm publish coming soon. For now, install from source — see [docs/setup-guide.md](docs/setup-guide.md).
-
 ## Quick Start
 
 **Prerequisites:** [Node.js 20+](https://nodejs.org), [Beads (`bd` CLI)](https://github.com/steveyegge/beads/releases) v1.0.0+, [Dolt](https://docs.dolthub.com/introduction/installation) v1.85.0+
 
 ```bash
-# Install
-npm install -g agent-messenger
+# Install globally (the CLI command is "agent-messenger")
+npm install -g cursor-claude-messenger
 
 # Set up in your project
 cd your-project
