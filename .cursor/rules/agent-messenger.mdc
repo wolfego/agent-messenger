@@ -43,19 +43,19 @@ This is optional. The user can abandon at any step by simply giving a different 
 
 ### Workflow phases
 
-When `#orchestrate` is invoked:
+When `#orchestrate` is invoked, follow the superpowers process across both agents:
 
-1. **Brainstorm** — Explore approaches for the feature. Present 2-3 options with trade-offs. Ask: "Shall I send this to CC for challenge?" On approval, `send_message` with `action: challenge`.
+1. **Brainstorm** — Use `superpowers:brainstorming` to explore the feature. This means: explore project context, ask clarifying questions one at a time, propose 2-3 approaches with trade-offs, present design section by section, get user approval. After the user approves the design, ask: "Shall I send this to CC for challenge before writing the spec?" On approval, `send_message` with `action: challenge` and a summary of the design.
 
-2. **Synthesize** — After receiving CC's counter-proposals (`#cm`), merge the best ideas. Present the synthesis. Ask: "Shall I write the spec?"
+2. **Synthesize** — After receiving CC's counter-proposals (`#cm`), merge the best ideas into the design. Update the design based on CC's input. Present the updated design to the user for approval.
 
-3. **Spec** — Write a concise spec (what, why, acceptance criteria, non-goals). Ask: "Shall I send this to CC for verification?" On approval, `send_message` with `action: verify-spec` and the spec file in `context_files`.
+3. **Spec** — Write the spec document to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` (following the brainstorming skill's documentation step). Run the spec review loop if subagents are available. After the user reviews and approves the written spec, ask: "Shall I send this to CC for verification and plan writing?" On approval, `send_message` with `action: verify-spec` and the spec file in `context_files`.
 
-4. **Plan Review** — CC replies with a verified spec and implementation plan. Review the plan for completeness, ordering, and risk. Suggest changes or approve. Ask: "Shall I send approval to CC to begin implementation?" On approval, `send_message` with `action: implement` and the plan file in `context_files`.
+4. **Plan Review** — CC replies with verified spec notes and an implementation plan (written using `superpowers:writing-plans`). Review the plan for: bite-sized TDD steps, correct file paths, complete task coverage, proper ordering. The plan should be at `docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md`. Suggest changes or approve. Ask: "Shall I send approval to CC to begin implementation?" On approval, `send_message` with `action: implement` and the plan file in `context_files`.
 
-5. **Monitor** — CC implements and reports back. Review progress, unblock issues, answer design questions as they arise via `reply`.
+5. **Monitor** — CC implements using `superpowers:subagent-driven-development` (if subagents available) or `superpowers:executing-plans`. This includes TDD, spec compliance review, and code quality review at each task. Review progress, unblock issues, answer design questions as they arise via `reply`.
 
-6. **Code Review** — When CC signals completion, review the changes. Ask: "Shall I send a code review request to CC?" or perform the review yourself.
+6. **Finish & Review** — When CC signals completion (using `superpowers:finishing-a-development-branch`), review the changes. Verify tests pass. Either review the code yourself or dispatch a code review subagent using `superpowers:requesting-code-review`.
 
 ### Guidelines
 
@@ -64,6 +64,7 @@ When `#orchestrate` is invoked:
 - If the user says "skip to implementation" or "just write the plan yourself," follow their lead. The workflow is a guide, not a cage.
 - Use `task_id` on messages when a beads task exists for the feature.
 - If the user goes silent or changes topic, the workflow is implicitly abandoned. No cleanup needed.
+- The superpowers skills (brainstorming, writing-plans, executing-plans, etc.) provide the rigor. The orchestrate workflow provides the inter-agent coordination. Both are needed.
 
 ## Sending messages
 

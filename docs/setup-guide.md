@@ -267,17 +267,17 @@ Cursor calls `check_inbox()`, reads the reply, and acts on it.
 
 ### Orchestrate Workflow
 
-`#orchestrate <feature>` (Cursor) activates a structured development workflow where Cursor is the **orchestrator** and Claude Code is the **implementer**. This is optional — you can abandon it at any step by simply giving a different instruction. There is no state to clean up.
+`#orchestrate <feature>` (Cursor) activates a structured development workflow where Cursor is the **orchestrator** and Claude Code is the **implementer**. Built on the [superpowers](https://github.com/superpowers-ai/superpowers) process for rigor. Optional — abandon at any step with no cleanup.
 
-**Roles:**
+**Roles and superpowers skills used:**
 
-| | Cursor (orchestrator) | Claude Code (implementer) |
-|---|---|---|
-| Brainstorm | Explores approaches, presents trade-offs | Challenges assumptions, proposes alternatives |
-| Spec | Writes the spec | Verifies completeness, flags gaps |
-| Plan | Reviews the plan | Writes the implementation plan |
-| Implementation | Monitors, unblocks, answers design questions | Implements step by step |
-| Code review | Reviews changes | Addresses findings |
+| Phase | Cursor (orchestrator) | Claude Code (implementer) | Superpowers skills |
+|---|---|---|---|
+| Brainstorm | Explores approaches, presents trade-offs | Challenges assumptions, proposes alternatives | `brainstorming` (Cursor) |
+| Spec | Writes spec doc, runs spec review loop | Verifies completeness, flags gaps | `brainstorming` doc step (Cursor) |
+| Plan | Reviews the plan for TDD steps, ordering, coverage | Writes bite-sized implementation plan | `writing-plans` (CC) |
+| Implementation | Monitors, unblocks, answers design questions | Implements with TDD, spec+quality review per task | `subagent-driven-development` or `executing-plans` (CC), `test-driven-development` |
+| Finish | Reviews changes, verifies tests | Presents merge/PR/keep/discard options | `finishing-a-development-branch` (CC), `verification-before-completion` |
 
 **Example flow:**
 
@@ -285,7 +285,7 @@ Cursor calls `check_inbox()`, reads the reply, and acts on it.
 [Cursor] User: #orchestrate add WebSocket support
 ```
 
-Cursor brainstorms 2-3 approaches with trade-offs, then asks: "Shall I send to CC for challenge?"
+Cursor uses `superpowers:brainstorming` — explores context, asks clarifying questions one at a time, proposes 2-3 approaches, presents design. After user approves: "Shall I send to CC for challenge?"
 
 ```
 [Cursor] User: y
@@ -297,22 +297,22 @@ Cursor sends with `action: challenge`. Prompts user to switch.
 [CC] User: /cm
 ```
 
-CC challenges the brainstorm, replies with counter-proposals. Prompts user to switch back.
+CC challenges the design, replies with counter-proposals. User switches back.
 
 ```
 [Cursor] User: #cm
 ```
 
-Cursor synthesizes both perspectives, writes the spec, asks: "Shall I send to CC for verification?"
+Cursor synthesizes both perspectives, writes spec to `docs/superpowers/specs/`, runs spec review loop. After user approves written spec: "Shall I send to CC for verification and plan writing?"
 
 ```
 [Cursor] User: y
 [CC] User: /cm
 ```
 
-CC verifies the spec and writes an implementation plan. Cursor reviews the plan, approves, and CC implements.
+CC verifies the spec, then uses `superpowers:writing-plans` to create a bite-sized TDD plan at `docs/superpowers/plans/`. Cursor reviews the plan. On approval, CC implements using `superpowers:subagent-driven-development` (TDD, two-stage review per task), then finishes with `superpowers:finishing-a-development-branch`.
 
-**At each step, the user's role is: approve/redirect, then switch contexts.** The agents propose the next action — the user doesn't need to remember the workflow.
+**At each step, the user's role is: approve/redirect, then switch contexts.** The agents propose the next action and use superpowers skills for rigor — the user doesn't need to remember the workflow or the process.
 
 ### Multi-Agent Parallel Implementation
 

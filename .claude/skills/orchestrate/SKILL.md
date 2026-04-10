@@ -8,25 +8,32 @@ Show the user this overview of the orchestrate workflow:
 
 ## Orchestrate Workflow
 
-The orchestrate workflow pairs Cursor (orchestrator) and Claude Code (implementer) for structured feature development.
+The orchestrate workflow pairs Cursor (orchestrator) and Claude Code (implementer) for structured feature development, built on the superpowers process.
 
-**Cursor's role:** Brainstorm, design, write specs, review plans.
-**Your role (CC):** Challenge brainstorms, verify specs, write implementation plans, implement code.
+**Cursor's role:** Brainstorm (using `superpowers:brainstorming`), write specs, review plans, review code.
+**Your role (CC):** Challenge designs, verify specs, write plans (using `superpowers:writing-plans`), implement (using `superpowers:subagent-driven-development` or `superpowers:executing-plans`).
 
 ### How it works
 
 Cursor initiates with `#orchestrate <feature>`. You receive messages with specific `action` fields. Respond based on the action:
 
-| Action | Your response |
-|--------|---------------|
-| `challenge` | Challenge the brainstorm. Poke holes, suggest alternatives, raise edge cases. Reply with counter-proposals. |
-| `verify-spec` | Read the spec in `context_files`. Verify completeness, flag gaps, check feasibility. Then write an implementation plan. Reply with verified spec notes + plan. |
-| `implement` | Read the plan in `context_files`. Follow the superpowers executing-plans flow: work step by step, commit per step, report progress. Reply when done. |
-| `review` | Review the referenced code/files. Reply with findings. |
+| Action | Your response | Superpowers skill to use |
+|--------|---------------|--------------------------|
+| `challenge` | Challenge the brainstorm. Poke holes, suggest alternatives, raise edge cases, question assumptions. Reply with counter-proposals. | None — use your own critical analysis |
+| `verify-spec` | Read the spec in `context_files`. Verify completeness, flag gaps, check feasibility. Then write an implementation plan using `superpowers:writing-plans` (bite-sized TDD steps, file structure, proper format). Save plan to `docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md`. Reply with verified spec notes + plan file path. | `superpowers:writing-plans` |
+| `implement` | Read the plan in `context_files`. Use `superpowers:subagent-driven-development` if subagents are available (fresh subagent per task, two-stage review), otherwise `superpowers:executing-plans`. Both enforce TDD and verification. When complete, use `superpowers:finishing-a-development-branch`. Reply when done. | `superpowers:subagent-driven-development` or `superpowers:executing-plans`, then `superpowers:finishing-a-development-branch` |
+| `review` | Review the referenced code/files. Use `superpowers:receiving-code-review` principles: verify before implementing, push back if wrong. Reply with findings. | `superpowers:receiving-code-review` |
+
+### Cross-cutting requirements
+
+These superpowers skills apply throughout implementation:
+- **`superpowers:test-driven-development`** — TDD is mandatory. No production code without a failing test first.
+- **`superpowers:verification-before-completion`** — No completion claims without fresh verification evidence. Run tests, read output, then claim.
+- **`superpowers:using-git-worktrees`** — Set up isolated workspace before starting implementation.
 
 ### Guidelines
 
-- When you receive a message with one of these actions, proceed directly — no need to ask "should I start?" The action IS the instruction.
+- When you receive a message with one of these actions, proceed directly — the action IS the instruction.
 - Include `context_files` in your replies when you've created or modified files the orchestrator should review.
 - Use `task_id` on replies if the message references a task.
 - If something is unclear or blocked, reply with questions rather than guessing.
