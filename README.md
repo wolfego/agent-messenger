@@ -1,10 +1,15 @@
 # agent-messenger
 
-MCP server for AI agent-to-agent messaging. Lets Cursor and Claude Code agents send messages, reply in threads, and coordinate work — backed by [Beads](https://github.com/gastownhall/beads) for persistent, version-controlled storage.
+[![CI](https://github.com/wolfego/agent-messenger/actions/workflows/ci.yml/badge.svg)](https://github.com/wolfego/agent-messenger/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+MCP server for AI agent-to-agent messaging. Lets Cursor and Claude Code agents send messages, reply in threads, and coordinate work — backed by [Beads](https://github.com/steveyegge/beads) for persistent, version-controlled storage.
+
+> **Status:** Pre-release (v0.1.0). npm publish coming soon. For now, install from source — see [docs/setup-guide.md](docs/setup-guide.md).
 
 ## Quick Start
 
-**Prerequisites:** [Node.js 18+](https://nodejs.org), [Beads (`bd` CLI)](https://github.com/gastownhall/beads/releases) v1.0.0+, [Dolt](https://docs.dolthub.com/introduction/installation) v1.85.0+
+**Prerequisites:** [Node.js 20+](https://nodejs.org), [Beads (`bd` CLI)](https://github.com/steveyegge/beads/releases) v1.0.0+, [Dolt](https://docs.dolthub.com/introduction/installation) v1.85.0+
 
 ```bash
 # Install
@@ -17,7 +22,7 @@ agent-messenger init
 # Restart Cursor. Done.
 ```
 
-That's it. The `init` command handles Beads initialization, MCP config generation, Cursor rules, and Claude Code skills. If something doesn't work, run:
+The `init` command handles Beads initialization, MCP config generation, Cursor rules, and Claude Code skills. If something doesn't work, run:
 
 ```bash
 agent-messenger doctor
@@ -43,7 +48,7 @@ Both agents connect to the same MCP server with different identities. Messages r
                           └─────────────────────┘
 ```
 
-## Tools
+## Tools (21)
 
 **Messaging:**
 
@@ -86,11 +91,19 @@ Both agents connect to the same MCP server with different identities. Messages r
 
 **Claude Code** (via skills): `/am` `/cm` `/sm` `/ch` `/id` `/wi` `/ct` `/lt` `/st` `/rt` `/la` `/orchestrate`
 
+## Orchestrate Workflow
+
+`#orchestrate <feature>` (Cursor) or `/orchestrate` (CC) activates a structured development workflow pairing Cursor as **orchestrator** (brainstormer, designer, spec writer, plan reviewer) and Claude Code as **implementer** (spec verifier, plan writer, coder).
+
+Built on the [superpowers](https://github.com/superpowers-ai/superpowers) process: Cursor uses `brainstorming` for design rigor, CC uses `writing-plans` and `subagent-driven-development` for implementation with TDD. Abandon at any step — no state to clean up.
+
+See [docs/setup-guide.md](docs/setup-guide.md) for the full workflow description.
+
 ## Identity & Multi-Agent
 
 Each agent gets a unique session ID on startup (e.g. `claude-code-a3f2`). The base ID (`claude-code`) is shared across all instances — messages to the base ID reach every instance. Use `set_identity` (`#id` / `/id`) to pick a memorable name like `cc-design`.
 
-When multiple agent windows/terminals are open in the same project, you have two options:
+When multiple agent windows/terminals are open in the same project:
 
 **Name them:** `#id cursor-design`, `/id cc-design` — then address by name
 
@@ -118,6 +131,10 @@ When multiple agent windows/terminals are open in the same project, you have two
 ## Manual Setup
 
 If you prefer to set things up manually (or the installer doesn't cover your setup), see [docs/setup-guide.md](docs/setup-guide.md).
+
+## Contributing
+
+See [docs/setup-guide.md](docs/setup-guide.md) for development setup. The project uses [Beads](https://github.com/steveyegge/beads) for issue tracking — run `bd ready` to find available work.
 
 ## License
 
