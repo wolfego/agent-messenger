@@ -20,6 +20,12 @@ agent-messenger init
 # Restart Cursor. Done.
 ```
 
+> **Windows:** If `agent-messenger` isn't recognized after install, the npm global bin directory likely isn't in your PATH. Run `npm prefix -g` to find it (usually `C:\Users\<you>\AppData\Roaming\npm`), then add it permanently:
+> ```powershell
+> [Environment]::SetEnvironmentVariable("PATH", $env:PATH + ";$(npm prefix -g)", "User")
+> ```
+> Restart your terminal after.
+
 The `init` command handles Beads initialization, MCP config generation, Cursor rules, and Claude Code skills. If something doesn't work, run:
 
 ```bash
