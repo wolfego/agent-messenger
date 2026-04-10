@@ -1,6 +1,6 @@
 # Agent Messenger — Setup & Usage Guide
 
-An MCP server that lets AI agents (Cursor, Claude Code) send messages to each other within a project, backed by [Beads](https://github.com/gastownhall/beads) for persistent storage.
+An MCP server that lets AI agents (Cursor, Claude Code) send messages to each other within a project, backed by [Beads](https://github.com/steveyegge/beads) for persistent storage.
 
 ## Automated Setup (Recommended)
 
@@ -35,11 +35,11 @@ This checks prerequisites, configs, paths, and server connectivity — and tells
 
 | Dependency       | Version | Install                                                                                                  |
 | ---------------- | ------- | -------------------------------------------------------------------------------------------------------- |
-| Node.js          | 18+     | [https://nodejs.org](https://nodejs.org)                                                                 |
-| Beads (`bd` CLI) | 1.0.0+  | `npm install -g @beads/bd` or [manual install](https://github.com/gastownhall/beads/releases)            |
+| Node.js          | 20+     | [https://nodejs.org](https://nodejs.org)                                                                 |
+| Beads (`bd` CLI) | 1.0.0+  | `npm install -g @beads/bd` or [manual install](https://github.com/steveyegge/beads/releases)            |
 | Dolt             | 1.85.0+ | [https://docs.dolthub.com/introduction/installation](https://docs.dolthub.com/introduction/installation) |
 
-> **Windows note:** The npm install for Beads may fail on Windows. Download `bd.exe` directly from [GitHub releases](https://github.com/gastownhall/beads/releases) and place it on your PATH (e.g., `C:\Users\<you>\.local\bin`).
+> **Windows note:** The npm install for Beads may fail on Windows. Download `bd.exe` directly from [GitHub releases](https://github.com/steveyegge/beads/releases) and place it on your PATH (e.g., `C:\Users\<you>\.local\bin`).
 
 ## Manual Setup
 

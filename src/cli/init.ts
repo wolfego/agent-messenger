@@ -314,7 +314,7 @@ export async function init(args: string[]): Promise<void> {
     if (!bdPath) {
       log("✖", "Beads (bd) not found on PATH");
       console.log("    Install: npm install -g @beads/bd");
-      console.log("    Or download from: https://github.com/gastownhall/beads/releases");
+      console.log("    Or download from: https://github.com/steveyegge/beads/releases");
       if (platform() === "win32") {
         console.log("    Windows: download bd.exe and place in a PATH directory");
       }

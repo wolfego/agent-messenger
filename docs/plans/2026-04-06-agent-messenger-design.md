@@ -23,7 +23,7 @@ Desired workflows that currently require manual relay:
 
 ## Approach
 
-Build a lightweight **MCP server** ("agent-messenger") that provides high-level messaging tools, backed by **Beads** (`gastownhall/beads`) for persistent, version-controlled storage.
+Build a lightweight **MCP server** ("agent-messenger") that provides high-level messaging tools, backed by **Beads** (`steveyegge/beads`) for persistent, version-controlled storage.
 
 Both Cursor and Claude Code are MCP clients. Both connect to the same `agent-messenger` MCP server. The server translates simple messaging operations (`send_message`, `check_inbox`, `reply`) into Beads CLI calls (`bd create --type msg`, `bd list`, etc.).
 
