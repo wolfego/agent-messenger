@@ -458,9 +458,5 @@ Done! Next steps:
   3. Accept the agent-messenger MCP server when CC prompts
   4. In Cursor, type: #cm (check messages)
   5. In CC, type: check your inbox using the check_inbox tool
-
-Agent IDs:
-  Cursor: ${opts.cursorId}
-  CC:     ${opts.ccId}
 `);
 }
