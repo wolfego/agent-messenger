@@ -138,6 +138,12 @@ When CC starts, it will prompt you to accept the new MCP server.
 | -------------- | ------ | ----------- |
 | List agents    | `#la`  | `/la`       |
 
+**Workflow:**
+
+| Action         | Cursor         | Claude Code    |
+| -------------- | -------------- | -------------- |
+| Orchestrate    | `#orchestrate` | `/orchestrate` |
+
 ## MCP Tools Reference
 
 **Messaging:**
@@ -259,76 +265,54 @@ CC calls `check_inbox()`, sees the message, reads the file, and calls `reply(mes
 
 Cursor calls `check_inbox()`, reads the reply, and acts on it.
 
-### Superpowers Development Workflow
+### Orchestrate Workflow
 
-A full feature development cycle using agent-messenger to coordinate between agents. The human drives each step with a short command, and the agents communicate directly instead of requiring copy-paste.
+`#orchestrate <feature>` (Cursor) activates a structured development workflow where Cursor is the **orchestrator** and Claude Code is the **implementer**. This is optional — you can abandon it at any step by simply giving a different instruction. There is no state to clean up.
 
-#### Phase 1: Brainstorm
+**Roles:**
 
-```
-[Cursor] User: "Brainstorm approaches for adding WebSocket support to our API.
-               Send your brainstorm to cc for challenge and counter-proposals."
-```
+| | Cursor (orchestrator) | Claude Code (implementer) |
+|---|---|---|
+| Brainstorm | Explores approaches, presents trade-offs | Challenges assumptions, proposes alternatives |
+| Spec | Writes the spec | Verifies completeness, flags gaps |
+| Plan | Reviews the plan | Writes the implementation plan |
+| Implementation | Monitors, unblocks, answers design questions | Implements step by step |
+| Code review | Reviews changes | Addresses findings |
 
-Cursor brainstorms, then calls `send_message(to: "claude-code", ...)`.
-
-```
-[CC] User: /cm
-```
-
-CC reads the brainstorm, challenges assumptions, adds alternatives, and calls `reply(...)`.
+**Example flow:**
 
 ```
-[Cursor] User: #cm — then "synthesize both perspectives into a design"
+[Cursor] User: #orchestrate add WebSocket support
 ```
 
-#### Phase 2: Design & Spec
+Cursor brainstorms 2-3 approaches with trade-offs, then asks: "Shall I send to CC for challenge?"
 
 ```
-[Cursor] User: "Write the design doc at docs/websocket-design.md, then send it
-               to cc for architecture review"
+[Cursor] User: y
 ```
+
+Cursor sends with `action: challenge`. Prompts user to switch.
 
 ```
 [CC] User: /cm
 ```
 
-CC reviews the design for edge cases, security concerns, and scalability. Replies with findings.
+CC challenges the brainstorm, replies with counter-proposals. Prompts user to switch back.
 
 ```
-[Cursor] User: #cm — then "address the feedback and write the spec"
+[Cursor] User: #cm
 ```
 
-#### Phase 3: Plan Review
+Cursor synthesizes both perspectives, writes the spec, asks: "Shall I send to CC for verification?"
 
 ```
-[Cursor] User: "Write the implementation plan at docs/plans/websocket.md,
-               then send to cc for review"
-```
-
-```
+[Cursor] User: y
 [CC] User: /cm
 ```
 
-CC reviews the plan for task ordering, missing dependencies, and estimates. Replies.
+CC verifies the spec and writes an implementation plan. Cursor reviews the plan, approves, and CC implements.
 
-#### Phase 4: Implementation
-
-```
-[Cursor] User: #cm — then "incorporate feedback and begin implementing step 1"
-```
-
-#### Phase 5: Code Review
-
-```
-[Cursor] User: "send the diff of this branch to cc for code review"
-```
-
-```
-[CC] User: /cm
-```
-
-CC reviews the code, replies with findings. Cursor addresses them.
+**At each step, the user's role is: approve/redirect, then switch contexts.** The agents propose the next action — the user doesn't need to remember the workflow.
 
 ### Multi-Agent Parallel Implementation
 

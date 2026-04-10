@@ -33,6 +33,37 @@ The user may type these short commands instead of full sentences:
 - `#la` — List agents. Call `list_agents` to see who is currently online in this project.
 - `#log` — Message log. Run `agent-messenger log` in the terminal and show the output to the user. Supports `--agent`, `--channel`, `--limit`, `--thread` flags.
 - `#status` — Status overview. Run `agent-messenger status` in the terminal and show the output to the user.
+- `#orchestrate` — Start the orchestrator workflow. See "Orchestrate Workflow" section above. Pass a feature description, e.g. `#orchestrate add WebSocket support`.
+
+## Orchestrate Workflow
+
+`#orchestrate <feature description>` activates the orchestrator workflow. You (Cursor) become the **orchestrator** — brainstormer, designer, spec writer, and plan reviewer. Claude Code becomes the **implementer** — spec verifier, plan writer, and coder.
+
+This is optional. The user can abandon at any step by simply giving a different instruction — there is no state to clean up.
+
+### Workflow phases
+
+When `#orchestrate` is invoked:
+
+1. **Brainstorm** — Explore approaches for the feature. Present 2-3 options with trade-offs. Ask: "Shall I send this to CC for challenge?" On approval, `send_message` with `action: challenge`.
+
+2. **Synthesize** — After receiving CC's counter-proposals (`#cm`), merge the best ideas. Present the synthesis. Ask: "Shall I write the spec?"
+
+3. **Spec** — Write a concise spec (what, why, acceptance criteria, non-goals). Ask: "Shall I send this to CC for verification?" On approval, `send_message` with `action: verify-spec` and the spec file in `context_files`.
+
+4. **Plan Review** — CC replies with a verified spec and implementation plan. Review the plan for completeness, ordering, and risk. Suggest changes or approve. Ask: "Shall I send approval to CC to begin implementation?" On approval, `send_message` with `action: implement` and the plan file in `context_files`.
+
+5. **Monitor** — CC implements and reports back. Review progress, unblock issues, answer design questions as they arise via `reply`.
+
+6. **Code Review** — When CC signals completion, review the changes. Ask: "Shall I send a code review request to CC?" or perform the review yourself.
+
+### Guidelines
+
+- Always ask before sending — never auto-send without user approval.
+- Keep each message focused: one phase per message, clear `action` field.
+- If the user says "skip to implementation" or "just write the plan yourself," follow their lead. The workflow is a guide, not a cage.
+- Use `task_id` on messages when a beads task exists for the feature.
+- If the user goes silent or changes topic, the workflow is implicitly abandoned. No cleanup needed.
 
 ## Sending messages
 
