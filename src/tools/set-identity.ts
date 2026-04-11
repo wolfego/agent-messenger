@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { Config } from "../config.js";
-import { registerPresence } from "../beads.js";
+import { deregisterPresence, registerPresence } from "../beads.js";
 
 export const setIdentitySchema = {
   name: z.string().describe("New identity for this agent (e.g. 'cc-design', 'cc-auth'). This changes how you appear in messages and who can address you specifically."),
@@ -9,13 +9,19 @@ export const setIdentitySchema = {
 export function handleSetIdentity(config: Config) {
   return (args: { name: string }) => {
     const oldId = config.agentId;
+
+    // Close the old presence record before changing identity
+    if (config.beadsDir) {
+      try { deregisterPresence(config); } catch { /* best-effort */ }
+    }
+
     config.agentId = args.name;
     config.agentName = args.name
       .split("-")
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
       .join(" ");
 
-    // Re-register presence with the new identity
+    // Register presence with the new identity
     if (config.beadsDir) {
       try { registerPresence(config); } catch { /* best-effort */ }
     }
