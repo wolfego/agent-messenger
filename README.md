@@ -132,9 +132,18 @@ When multiple agent windows/terminals are open in the same project:
 | `--dry-run`        |                | Preview changes without writing   |
 | `--skip-beads`     |                | Skip Beads/Dolt setup             |
 
-## Manual Setup
+## Troubleshooting
 
-If you prefer to set things up manually (or the installer doesn't cover your setup), see [docs/setup-guide.md](docs/setup-guide.md).
+Run `agent-messenger doctor` first — it checks everything automatically.
+
+| Problem | Fix |
+| ------- | --- |
+| `agent-messenger` not recognized (Windows) | npm global bin isn't in PATH — see the [Windows note](#quick-start) above |
+| MCP server disabled after PC sleep/wake | Toggle it off and back on in Cursor Settings > Tools & MCP ([known Cursor issue](https://forum.cursor.com/t/cursor-mcp-client-fails-to-reconnect-after-network-drop-or-sleep-wake-cycle/151578)) |
+| "driver: bad connection" | Run `bd dolt start` — the Dolt server isn't running |
+| MCP not appearing in Cursor | Restart Cursor; check `.cursor/mcp.json` exists with correct paths |
+
+See [docs/setup-guide.md](docs/setup-guide.md) for the full troubleshooting table, manual setup, and detailed usage.
 
 ## Contributing
 

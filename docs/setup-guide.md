@@ -379,11 +379,12 @@ If you see "driver: bad connection" errors, the Dolt server likely isn't running
 
 ## Troubleshooting
 
-Run `agent-messenger doctor` first — it checks everything automatically.
+Run `agent-messenger doctor` first — it checks everything automatically. For a quick overview, see the [troubleshooting section in the README](../README.md#troubleshooting).
 
 | Problem                           | Fix                                                                            |
 | --------------------------------- | ------------------------------------------------------------------------------ |
 | `agent-messenger` not recognized (Windows) | npm global bin isn't in PATH. Run `npm prefix -g` to find it, then add it: `[Environment]::SetEnvironmentVariable("PATH", $env:PATH + ";$(npm prefix -g)", "User")` and restart your terminal |
+| MCP server disabled after PC sleep/wake | This is a [known Cursor issue](https://forum.cursor.com/t/cursor-mcp-client-fails-to-reconnect-after-network-drop-or-sleep-wake-cycle/151578). Cursor's MCP client has limited retries and gives up if the connection drops during sleep. **Fix:** Toggle the server off and back on in Cursor Settings > Tools & MCP |
 | `bd` not found                    | Install Beads and ensure `bd` is on your PATH                                  |
 | "driver: bad connection"          | Run `bd dolt start` — the Dolt server isn't running                            |
 | "embedded Dolt requires CGO"      | Use `bd init --server` instead of `bd init` (required on Windows)              |
