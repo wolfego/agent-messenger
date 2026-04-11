@@ -31,7 +31,7 @@ The user may type these short commands instead of full sentences:
 - `#st` — Show task. Ask for task ID, then call `show_task`.
 - `#rt` — Ready tasks. Call `list_tasks` with `ready_only: true` to show tasks with no blockers.
 - `#la` — List agents. Call `list_agents` to see who is currently online in this project.
-- `#log` — Message log. Run `agent-messenger log` in the terminal and show the output to the user. Supports `--agent`, `--channel`, `--limit`, `--thread` flags.
+- `#log` — Message history. Call `query_beads` with `type: "message"` and `limit: 20`. If the user specifies an agent name, pass it as `from`. Show a concise summary: timestamp, from, to, subject.
 - `#status` — Status overview. Run `agent-messenger status` in the terminal and show the output to the user.
 - `#orchestrate` — Start the orchestrator workflow. See "Orchestrate Workflow" section above. Pass a feature description, e.g. `#orchestrate add WebSocket support`.
 

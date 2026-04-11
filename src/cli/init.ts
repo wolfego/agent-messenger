@@ -195,6 +195,7 @@ The user may type these short commands instead of full sentences:
 - \`#st\` — Show task. Ask for task ID, then call \`show_task\`.
 - \`#rt\` — Ready tasks. Call \`list_tasks\` with \`ready_only: true\` to show tasks with no blockers.
 - \`#la\` — List agents. Call \`list_agents\` to see who is currently online in this project.
+- \`#log\` — Message history. Call \`query_beads\` with \`type: "message"\` and \`limit: 20\`. If the user specifies an agent name, pass it as \`from\`. Show a concise summary: timestamp, from, to, subject.
 
 ## Sending messages
 
@@ -253,6 +254,7 @@ const SKILLS: Array<{ name: string; description: string; body: string; noInvoke?
 | \`/st\`   | Show task — prompts for task ID, shows full details |
 | \`/rt\`   | Ready tasks — show tasks with no blockers |
 | \`/la\`   | List agents — show who is currently online |
+| \`/log\`  | Message history — browse recent messages, optionally filter by sender |
 
 **Identity:** Each agent gets a unique session ID on startup (e.g. \`claude-code-a3f2\`). Messages to your base ID (\`claude-code\`) reach all instances. Use \`/id\` to pick a memorable name like \`cc-design\`.
 
@@ -307,6 +309,11 @@ Messages are automatically marked as read when you check your inbox.`,
     name: "la",
     description: 'List online agents. Use when the user says "/la", "list agents", "who is online", or wants to see active agents in this project.',
     body: "List online agents using the `list_agents` MCP tool. Show each agent's ID, base ID, channel (if any), and when they were last seen. If an agent appears stale, mention that they may no longer be active.",
+  },
+  {
+    name: "log",
+    description: 'Show message history. Use when the user says "/log", "show messages", "message history", or wants to review past agent conversations.',
+    body: "Show recent message history using the `query_beads` MCP tool with `type: \"message\"` and `limit: 20`. If the user specifies an agent name (e.g. `/log cc-debug`), pass it as the `from` parameter. Show a concise summary for each message: timestamp, from, to, subject. If the user wants more detail on a specific message, use `get_thread` with its ID.",
   },
 ];
 

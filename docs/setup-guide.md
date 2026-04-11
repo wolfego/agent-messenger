@@ -64,6 +64,7 @@ Both agents have shortcut commands — `#` prefix in Cursor, `/` prefix in Claud
 | Show task        | `#st`          | `/st`          | Show full details for a task                        |
 | Ready tasks      | `#rt`          | `/rt`          | Show tasks with no blockers                         |
 | List agents      | `#la`          | `/la`          | See who is currently online                         |
+| Message history  | `#log`         | `/log`         | Browse recent messages, optionally filter by sender |
 | Orchestrate      | `#orchestrate` | `/orchestrate` | Start the structured orchestrator/implementer flow  |
 
 ## Identity

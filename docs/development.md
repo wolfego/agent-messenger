@@ -141,6 +141,10 @@ Full parameter details for each tool:
 
 **`list_agents`** — no params
 
+### General Query
+
+**`query_beads`** — `type` (string: message/task/bug/feature/epic/chore), `from?` (string), `to?` (string), `channel?` (string), `labels?` (string[]), `status?` (open/closed/all), `limit?` (number), `sort?` (created/updated/priority), `reverse?` (boolean)
+
 ## Dolt Server Management
 
 Beads uses Dolt in server mode. The Dolt server must be running for messaging to work.

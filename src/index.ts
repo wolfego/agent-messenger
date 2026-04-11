@@ -21,6 +21,7 @@ import { listAgentsSchema, handleListAgents } from "./tools/list-agents.js";
 import { manageDepsSchema, handleManageDeps } from "./tools/manage-deps.js";
 import { blockedTasksSchema, handleBlockedTasks } from "./tools/blocked-tasks.js";
 import { projectStatsSchema, handleProjectStats } from "./tools/project-stats.js";
+import { queryBeadsSchema, handleQueryBeads } from "./tools/query-beads.js";
 import { cleanStalePresence, registerPresence, deregisterPresence } from "./beads.js";
 
 const config = parseConfig();
@@ -166,6 +167,13 @@ server.tool(
   "Get project health snapshot: issue counts by state, ready work, lead time, recent activity",
   projectStatsSchema,
   handleProjectStats(config)
+);
+
+server.tool(
+  "query_beads",
+  "Query the Beads database. Use type 'message' to browse message history, or any other type for tasks/epics/chores. Convenience params (from, to, channel) translate to label filters automatically.",
+  queryBeadsSchema,
+  handleQueryBeads(config)
 );
 
 async function main() {

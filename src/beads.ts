@@ -68,6 +68,41 @@ function channelLabel(config: Config): string | undefined {
   return config.channel ? `channel:${config.channel}` : undefined;
 }
 
+export function queryBeads(
+  config: Config,
+  params: {
+    type: string;
+    labels?: string[];
+    status?: string;
+    limit?: number;
+    sort?: string;
+    reverse?: boolean;
+  }
+): BeadsMessage[] {
+  const args = ["list", "--type", params.type, "--include-infra"];
+
+  if (params.labels && params.labels.length > 0) {
+    args.push("--label", params.labels.join(","));
+  }
+  if (params.status && params.status !== "all") {
+    args.push("--status", params.status);
+  } else if (params.status === "all") {
+    args.push("--all");
+  }
+  if (params.limit) {
+    args.push("--limit", String(params.limit));
+  }
+  if (params.sort) {
+    args.push("--sort", params.sort);
+  }
+  if (params.reverse) {
+    args.push("--reverse");
+  }
+  args.push("--flat");
+
+  return bdJson<BeadsMessage[]>(config, args);
+}
+
 export function createMessage(
   config: Config,
   params: {

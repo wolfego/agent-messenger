@@ -52,7 +52,7 @@ Both agents connect to the same MCP server with different identities. Messages r
                           └─────────────────────┘
 ```
 
-## Tools (21)
+## Tools (22)
 
 **Messaging:**
 
@@ -88,12 +88,13 @@ Both agents connect to the same MCP server with different identities. Messages r
 | Tool           | Description                                 |
 | -------------- | ------------------------------------------- |
 | `list_agents`  | Show agents currently online                |
+| `query_beads`  | Query Beads DB (messages, tasks, any type) with preset and raw label filters |
 
 ## Shortcuts
 
-**Cursor** (via rules): `#help` `#cm` `#sm` `#ch` `#id` `#wi` `#ct` `#lt` `#st` `#rt` `#la` `#orchestrate`
+**Cursor** (via rules): `#help` `#cm` `#sm` `#ch` `#id` `#wi` `#ct` `#lt` `#st` `#rt` `#la` `#log` `#orchestrate`
 
-**Claude Code** (via skills): `/am` `/cm` `/sm` `/ch` `/id` `/wi` `/ct` `/lt` `/st` `/rt` `/la` `/orchestrate`
+**Claude Code** (via skills): `/am` `/cm` `/sm` `/ch` `/id` `/wi` `/ct` `/lt` `/st` `/rt` `/la` `/log` `/orchestrate`
 
 ## Orchestrate Workflow
 
