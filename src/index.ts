@@ -26,7 +26,7 @@ import { cleanStalePresence, registerPresence } from "./beads.js";
 const config = parseConfig();
 
 const server = new McpServer(
-  { name: "agent-messenger", version: "0.1.0" },
+  { name: "agent-messenger", version: "0.1.1" },
   {
     capabilities: { tools: {} },
     instructions: `Agent messenger for inter-agent communication. You are ${config.agentId} (base: ${config.baseId}, env: ${config.env})${config.channel ? ` on channel '${config.channel}'` : ""}. Use send_message to contact other agents, check_inbox to see messages addressed to you. If multiple agent pairs are active in this project, use set_channel to isolate conversations. On your FIRST turn in a new conversation, call set_identity with a short name reflecting your task (e.g. 'cc-web-ui', 'cc-auth-tests'). This helps other agents and the user identify you in list_agents.`,
