@@ -129,8 +129,9 @@ When multiple agent windows/terminals are open in the same project:
 | ------------------ | -------------- | --------------------------------- |
 | `--cursor-id <id>` | `cursor-opus`  | Cursor agent ID                   |
 | `--cc-id <id>`     | `claude-code`  | Claude Code agent ID              |
-| `--dry-run`        |                | Preview changes without writing   |
-| `--skip-beads`     |                | Skip Beads/Dolt setup             |
+| `--dry-run`        |                | Preview changes without writing              |
+| `--skip-beads`     |                | Skip Beads/Dolt setup                        |
+| `--force`          |                | Overwrite customized rules/skills on upgrade |
 
 ## Troubleshooting
 
@@ -143,11 +144,11 @@ Run `agent-messenger doctor` first — it checks everything automatically.
 | "driver: bad connection" | Run `bd dolt start` — the Dolt server isn't running |
 | MCP not appearing in Cursor | Restart Cursor; check `.cursor/mcp.json` exists with correct paths |
 
-See [docs/setup-guide.md](docs/setup-guide.md) for the full troubleshooting table, manual setup, and detailed usage.
+See [docs/setup-guide.md](docs/setup-guide.md) for the full troubleshooting table and usage guide.
 
 ## Contributing
 
-See [docs/setup-guide.md](docs/setup-guide.md) for development setup. The project uses [Beads](https://github.com/steveyegge/beads) for issue tracking — run `bd ready` to find available work.
+See [docs/development.md](docs/development.md) for build-from-source instructions, manual configuration, and project structure. The project uses [Beads](https://github.com/steveyegge/beads) for issue tracking — run `bd ready` to find available work.
 
 ## License
 

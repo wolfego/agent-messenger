@@ -35,6 +35,7 @@ Options for init:
   --cc-id <id>        Claude Code agent ID (default: claude-code)
   --dry-run           Show what would be created without writing
   --skip-beads        Skip Beads/Dolt installation (use if already set up)
+  --force             Overwrite customized rules/skills during upgrade
 `);
 }
 

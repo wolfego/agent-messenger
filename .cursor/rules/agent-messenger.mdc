@@ -10,7 +10,7 @@ You have access to the `agent-messenger` MCP server for communicating with other
 
 ## Auto-check on conversation start
 
-At the **start of each new conversation** (your very first response), call `check_inbox` once.
+At the **start of each new conversation** (your very first response), call `check_inbox` once — UNLESS the user's first message is a shortcut command (#id, #sm, #ch, #wi, #la, #ct, #lt, #st, #rt). In that case, execute the command directly without checking inbox.
 
 - If the inbox is empty, say nothing about it — proceed with the user's request normally.
 - If there are unread messages, summarize them briefly to the user (e.g. "You have a message from claude-code about X") and act on any that have an `action` field (review, brainstorm, implement, reply). Messages are automatically marked read when fetched.

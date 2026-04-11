@@ -12,6 +12,7 @@ interface InitOptions {
   ccId: string;
   dryRun: boolean;
   skipBeads: boolean;
+  force: boolean;
 }
 
 function parseArgs(args: string[]): InitOptions {
@@ -20,6 +21,7 @@ function parseArgs(args: string[]): InitOptions {
     ccId: "claude-code",
     dryRun: false,
     skipBeads: false,
+    force: false,
   };
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--cursor-id" && args[i + 1]) {
@@ -32,6 +34,8 @@ function parseArgs(args: string[]): InitOptions {
       opts.dryRun = true;
     } else if (args[i] === "--skip-beads") {
       opts.skipBeads = true;
+    } else if (args[i] === "--force") {
+      opts.force = true;
     }
   }
   return opts;
@@ -77,14 +81,34 @@ function getVersion(cmd: string): string | null {
   }
 }
 
-function writeFile(path: string, content: string, dryRun: boolean): void {
+type WriteResult = "created" | "updated" | "unchanged" | "skipped";
+
+function writeFileSafe(path: string, content: string, dryRun: boolean, force: boolean): WriteResult {
   if (dryRun) {
     log("📄", `Would create: ${path}`);
-    return;
+    return "created";
   }
+
+  if (existsSync(path)) {
+    const existing = readFileSync(path, "utf-8");
+    if (existing === content) {
+      log("—", `Unchanged: ${path}`);
+      return "unchanged";
+    }
+    if (!force) {
+      log("⚠", `Skipped (customized): ${path}`);
+      return "skipped";
+    }
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, content, "utf-8");
+    log("✓", `Updated: ${path}`);
+    return "updated";
+  }
+
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, content, "utf-8");
   log("✓", `Created: ${path}`);
+  return "created";
 }
 
 function mergeJsonFile(path: string, key: string, value: unknown, dryRun: boolean): void {
@@ -150,7 +174,7 @@ You have access to the \`agent-messenger\` MCP server for communicating with oth
 
 ## Auto-check on conversation start
 
-At the **start of each new conversation** (your very first response), call \`check_inbox\` once.
+At the **start of each new conversation** (your very first response), call \`check_inbox\` once — UNLESS the user's first message is a shortcut command (#id, #sm, #ch, #wi, #la, #ct, #lt, #st, #rt). In that case, execute the command directly without checking inbox.
 
 - If the inbox is empty, say nothing about it — proceed with the user's request normally.
 - If there are unread messages, summarize them briefly to the user (e.g. "You have a message from claude-code about X") and act on any that have an \`action\` field (review, brainstorm, implement, reply). Messages are automatically marked read when fetched.
@@ -292,13 +316,18 @@ export async function init(args: string[]): Promise<void> {
   const beadsDir = join(projectRoot, ".beads");
   const serverEntry = getServerEntryPath();
 
+  const isUpgrade = existsSync(join(projectRoot, ".cursor", "rules", "agent-messenger.mdc"))
+    || existsSync(join(projectRoot, ".cursor", "mcp.json"));
+
   console.log("\nagent-messenger init");
   console.log(`  Project: ${projectRoot}`);
   console.log(`  Server:  ${serverEntry}`);
   console.log(`  Cursor agent ID: ${opts.cursorId}`);
   console.log(`  CC agent ID:     ${opts.ccId}`);
-  if (opts.dryRun) console.log("  Mode: DRY RUN (no files will be written)\n");
-  else console.log();
+  if (isUpgrade) console.log("  Mode: UPGRADE (existing install detected — Beads data is safe)");
+  if (opts.force) console.log("  Flag: --force (will overwrite customized rules/skills)");
+  if (opts.dryRun) console.log("  Mode: DRY RUN (no files will be written)");
+  console.log();
 
   // Step 1: Check prerequisites
   console.log("Step 1: Check prerequisites");
@@ -395,21 +424,26 @@ export async function init(args: string[]): Promise<void> {
 
   // Step 4: Copy Cursor rule
   console.log("\nStep 4: Install Cursor rule");
-  writeFile(
+  const skippedFiles: string[] = [];
+  const ruleResult = writeFileSafe(
     join(projectRoot, ".cursor", "rules", "agent-messenger.mdc"),
     CURSOR_RULE,
-    opts.dryRun
+    opts.dryRun,
+    opts.force
   );
+  if (ruleResult === "skipped") skippedFiles.push("agent-messenger.mdc");
 
   // Step 5: Copy CC skills
   console.log("\nStep 5: Install Claude Code skills");
   for (const skill of SKILLS) {
     const needsInvocation = ["id", "cm", "sm", "ch", "wi"].includes(skill.name);
-    writeFile(
+    const result = writeFileSafe(
       join(projectRoot, ".claude", "skills", skill.name, "SKILL.md"),
       skillContent(skill.name, skill.description, skill.body, !needsInvocation),
-      opts.dryRun
+      opts.dryRun,
+      opts.force
     );
+    if (result === "skipped") skippedFiles.push(`skills/${skill.name}/SKILL.md`);
   }
 
   // Step 6: Validate
@@ -450,6 +484,16 @@ export async function init(args: string[]): Promise<void> {
   }
 
   // Step 7: Next steps
+  if (skippedFiles.length > 0) {
+    console.log(`
+  ⚠  ${skippedFiles.length} file(s) skipped — local customizations detected:
+     ${skippedFiles.join(", ")}
+
+     To overwrite with latest templates, re-run: agent-messenger init --force
+     Your Beads data (.beads/) is never affected.
+`);
+  }
+
   console.log(`
 Done! Next steps:
 

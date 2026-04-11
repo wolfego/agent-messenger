@@ -36,7 +36,6 @@ export function handleSetIdentity(config: Config) {
               previous_id: oldId,
               agent_id: config.agentId,
               base_id: config.baseId,
-              message: `Identity changed to '${config.agentId}'. Messages sent from you will now show from:${config.agentId}. You still receive messages addressed to '${config.baseId}' (your base ID) as well as '${config.agentId}'.`,
             },
             null,
             2
