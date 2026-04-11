@@ -6,32 +6,43 @@ import { platform } from "node:os";
 function checkPath(): void {
   if (platform() !== "win32") return;
 
+  let npmPrefix = "";
   try {
-    execSync("agent-messenger --help", {
-      stdio: "ignore",
+    npmPrefix = execSync("npm prefix -g", {
+      encoding: "utf-8",
       timeout: 5_000,
       windowsHide: true,
-    });
+    }).trim();
   } catch {
-    let npmPrefix = "";
-    try {
-      npmPrefix = execSync("npm prefix -g", {
-        encoding: "utf-8",
-        timeout: 5_000,
-        windowsHide: true,
-      }).trim();
-    } catch {
-      return;
-    }
+    return;
+  }
 
+  let userPath = "";
+  try {
+    userPath = execSync(
+      'powershell -NoProfile -Command "[Environment]::GetEnvironmentVariable(\'PATH\', \'User\')"',
+      { encoding: "utf-8", timeout: 5_000, windowsHide: true }
+    ).trim();
+  } catch {
+    return;
+  }
+
+  const inPath = userPath.split(";").some((p) => p.replace(/[\\/]+$/, "") === npmPrefix.replace(/[\\/]+$/, ""));
+
+  if (!inPath) {
     console.log(`
-  ⚠  agent-messenger installed, but may not be in your PATH.
+  ⚠  agent-messenger: npm global bin is not in your PATH.
 
-     To fix, run in PowerShell:
+     Run in PowerShell (one time):
 
-     [Environment]::SetEnvironmentVariable("PATH", $env:PATH + ";${npmPrefix}", "User")
+     [Environment]::SetEnvironmentVariable("PATH", [Environment]::GetEnvironmentVariable("PATH","User") + ";${npmPrefix}", "User")
 
      Then restart your terminal.
+`);
+  } else {
+    console.log(`
+  ✓  agent-messenger installed. If 'agent-messenger' isn't recognized,
+     restart your terminal to pick up the updated PATH.
 `);
   }
 }
