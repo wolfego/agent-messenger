@@ -28,6 +28,8 @@ cd your-project
 agent-messenger init
 ```
 
+**Restart Cursor after upgrading** (Ctrl+Shift+P → "Developer: Reload Window"). The npm update replaces the MCP server files on disk — Cursor needs to restart the server process to pick up the new version.
+
 Your Beads data (messages, tasks, history) is never affected by upgrades. If your Cursor rules or Claude Code skills have changed, `init` updates them and saves the old versions as `.bak` files.
 
 ### Init options
