@@ -130,9 +130,8 @@ When multiple agent windows/terminals are open in the same project:
 | ------------------ | -------------- | --------------------------------- |
 | `--cursor-id <id>` | `cursor-opus`  | Cursor agent ID                   |
 | `--cc-id <id>`     | `claude-code`  | Claude Code agent ID              |
-| `--dry-run`        |                | Preview changes without writing              |
-| `--skip-beads`     |                | Skip Beads/Dolt setup                        |
-| `--force`          |                | Overwrite customized rules/skills on upgrade |
+| `--dry-run`        |                | Preview changes without writing   |
+| `--skip-beads`     |                | Skip Beads/Dolt setup             |
 
 ## Troubleshooting
 

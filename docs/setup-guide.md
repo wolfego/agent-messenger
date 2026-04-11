@@ -28,7 +28,7 @@ cd your-project
 agent-messenger init
 ```
 
-Your Beads data (messages, tasks, history) is never affected by upgrades. If you've customized the Cursor rules or Claude Code skills, `init` will skip those files and warn you. Use `--force` to overwrite them with the latest templates.
+Your Beads data (messages, tasks, history) is never affected by upgrades. If your Cursor rules or Claude Code skills have changed, `init` updates them and saves the old versions as `.bak` files.
 
 ### Init options
 
@@ -36,9 +36,8 @@ Your Beads data (messages, tasks, history) is never affected by upgrades. If you
 | ------------------ | -------------- | ------------------------------------------ |
 | `--cursor-id <id>` | `cursor-opus`  | Cursor agent ID                            |
 | `--cc-id <id>`     | `claude-code`  | Claude Code agent ID                       |
-| `--dry-run`        |                | Preview changes without writing            |
-| `--skip-beads`     |                | Skip Beads/Dolt setup                      |
-| `--force`          |                | Overwrite customized rules/skills on upgrade |
+| `--dry-run`        |                | Preview changes without writing   |
+| `--skip-beads`     |                | Skip Beads/Dolt setup             |
 
 ### Diagnostics
 

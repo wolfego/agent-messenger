@@ -12,7 +12,6 @@ interface InitOptions {
   ccId: string;
   dryRun: boolean;
   skipBeads: boolean;
-  force: boolean;
 }
 
 function parseArgs(args: string[]): InitOptions {
@@ -21,7 +20,6 @@ function parseArgs(args: string[]): InitOptions {
     ccId: "claude-code",
     dryRun: false,
     skipBeads: false,
-    force: false,
   };
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--cursor-id" && args[i + 1]) {
@@ -34,8 +32,6 @@ function parseArgs(args: string[]): InitOptions {
       opts.dryRun = true;
     } else if (args[i] === "--skip-beads") {
       opts.skipBeads = true;
-    } else if (args[i] === "--force") {
-      opts.force = true;
     }
   }
   return opts;
@@ -81,9 +77,9 @@ function getVersion(cmd: string): string | null {
   }
 }
 
-type WriteResult = "created" | "updated" | "unchanged" | "skipped";
+type WriteResult = "created" | "updated" | "unchanged" | "backed_up";
 
-function writeFileSafe(path: string, content: string, dryRun: boolean, force: boolean): WriteResult {
+function writeFileSafe(path: string, content: string, dryRun: boolean): WriteResult {
   if (dryRun) {
     log("📄", `Would create: ${path}`);
     return "created";
@@ -95,14 +91,11 @@ function writeFileSafe(path: string, content: string, dryRun: boolean, force: bo
       log("—", `Unchanged: ${path}`);
       return "unchanged";
     }
-    if (!force) {
-      log("⚠", `Skipped (customized): ${path}`);
-      return "skipped";
-    }
-    mkdirSync(dirname(path), { recursive: true });
+    const bakPath = path + ".bak";
+    writeFileSync(bakPath, existing, "utf-8");
     writeFileSync(path, content, "utf-8");
-    log("✓", `Updated: ${path}`);
-    return "updated";
+    log("✓", `Updated: ${path} (old version saved as .bak)`);
+    return "backed_up";
   }
 
   mkdirSync(dirname(path), { recursive: true });
@@ -332,7 +325,6 @@ export async function init(args: string[]): Promise<void> {
   console.log(`  Cursor agent ID: ${opts.cursorId}`);
   console.log(`  CC agent ID:     ${opts.ccId}`);
   if (isUpgrade) console.log("  Mode: UPGRADE (existing install detected — Beads data is safe)");
-  if (opts.force) console.log("  Flag: --force (will overwrite customized rules/skills)");
   if (opts.dryRun) console.log("  Mode: DRY RUN (no files will be written)");
   console.log();
 
@@ -431,26 +423,21 @@ export async function init(args: string[]): Promise<void> {
 
   // Step 4: Copy Cursor rule
   console.log("\nStep 4: Install Cursor rule");
-  const skippedFiles: string[] = [];
-  const ruleResult = writeFileSafe(
+  writeFileSafe(
     join(projectRoot, ".cursor", "rules", "agent-messenger.mdc"),
     CURSOR_RULE,
-    opts.dryRun,
-    opts.force
+    opts.dryRun
   );
-  if (ruleResult === "skipped") skippedFiles.push("agent-messenger.mdc");
 
   // Step 5: Copy CC skills
   console.log("\nStep 5: Install Claude Code skills");
   for (const skill of SKILLS) {
     const needsInvocation = ["id", "cm", "sm", "ch", "wi"].includes(skill.name);
-    const result = writeFileSafe(
+    writeFileSafe(
       join(projectRoot, ".claude", "skills", skill.name, "SKILL.md"),
       skillContent(skill.name, skill.description, skill.body, !needsInvocation),
-      opts.dryRun,
-      opts.force
+      opts.dryRun
     );
-    if (result === "skipped") skippedFiles.push(`skills/${skill.name}/SKILL.md`);
   }
 
   // Step 6: Validate
@@ -491,16 +478,6 @@ export async function init(args: string[]): Promise<void> {
   }
 
   // Step 7: Next steps
-  if (skippedFiles.length > 0) {
-    console.log(`
-  ⚠  ${skippedFiles.length} file(s) skipped — local customizations detected:
-     ${skippedFiles.join(", ")}
-
-     To overwrite with latest templates, re-run: agent-messenger init --force
-     Your Beads data (.beads/) is never affected.
-`);
-  }
-
   console.log(`
 Done! Next steps:
 
