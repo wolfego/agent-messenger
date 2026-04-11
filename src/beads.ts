@@ -296,37 +296,50 @@ export function listLinkedMessages(config: Config, taskId: string): BeadsMessage
 // Presence
 // ---------------------------------------------------------------------------
 
+const STALE_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
+const HEARTBEAT_INTERVAL_MS = 2 * 60 * 1000; // 2 minutes
+
 export interface AgentPresence {
   agent_id: string;
   base_id: string;
   env: string | null;
   channel: string | null;
   registered_at: string;
+  last_seen: string;
+  stale: boolean;
+}
+
+let presenceRecordId: string | null = null;
+let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+
+function isStale(record: BeadsMessage): boolean {
+  const updatedAt = new Date(record.updated_at).getTime();
+  return Date.now() - updatedAt > STALE_THRESHOLD_MS;
 }
 
 /**
- * Remove presence records from previous sessions sharing our baseId.
- * Called on startup before registering the current session.
+ * Close ALL stale presence records (any base ID) that haven't been
+ * updated within the threshold. Called on startup.
  */
 export function cleanStalePresence(config: Config): void {
   try {
     const all = bdJson<BeadsMessage[]>(config, [
-      "list", "--type", "chore", "--label", `kind:presence,base:${config.baseId}`,
+      "list", "--type", "chore", "--label", "kind:presence", "--status", "open",
     ]);
     for (const rec of all) {
-      const recAgent = rec.labels?.find((l) => l.startsWith("agent:"))?.slice(6);
-      if (recAgent && recAgent !== config.agentId) {
+      if (isStale(rec)) {
         try {
-          bdExec(config, ["close", rec.id, "--reason", "stale session replaced"]);
+          bdExec(config, ["close", rec.id, "--reason", "stale — no heartbeat"]);
         } catch { /* best-effort */ }
       }
     }
-  } catch { /* ignore — list may return nothing */ }
+  } catch { /* ignore */ }
 }
 
 /**
  * Write a presence record for this agent session.
  * If one already exists for this agentId, update it; otherwise create.
+ * Starts a periodic heartbeat to keep the record fresh.
  */
 export function registerPresence(config: Config): void {
   const labels = [`kind:presence`, `agent:${config.agentId}`, `base:${config.baseId}`, `env:${config.env}`];
@@ -338,38 +351,80 @@ export function registerPresence(config: Config): void {
     ]);
 
     if (existing.length > 0) {
+      presenceRecordId = existing[0]!.id;
       bdExec(config, [
-        "update", existing[0]!.id,
+        "update", presenceRecordId,
         "--append-notes", `heartbeat ${new Date().toISOString()}`,
       ]);
+      startHeartbeat(config);
       return;
     }
   } catch { /* fall through to create */ }
 
-  bdExec(config, [
+  const result = bdJson<BeadsMessage>(config, [
     "create", `${config.agentId} online`,
     "--type", "chore",
     "--labels", labels.join(","),
     "--priority", "4",
     "--description", `Agent ${config.agentId} (base: ${config.baseId}) started at ${new Date().toISOString()}`,
   ]);
+  presenceRecordId = result.id;
+  startHeartbeat(config);
+}
+
+function startHeartbeat(config: Config): void {
+  if (heartbeatTimer) return;
+  heartbeatTimer = setInterval(() => {
+    if (!presenceRecordId) return;
+    try {
+      bdExec(config, [
+        "update", presenceRecordId,
+        "--append-notes", `heartbeat ${new Date().toISOString()}`,
+      ]);
+    } catch { /* best-effort */ }
+  }, HEARTBEAT_INTERVAL_MS);
+  heartbeatTimer.unref();
 }
 
 /**
- * List all agents with open presence records.
- * Open = active. Records are closed on startup when the same baseId restarts.
+ * Close our presence record and stop heartbeat. Called on process exit.
+ */
+export function deregisterPresence(config: Config): void {
+  if (heartbeatTimer) {
+    clearInterval(heartbeatTimer);
+    heartbeatTimer = null;
+  }
+  if (!presenceRecordId) return;
+  try {
+    bdExec(config, ["close", presenceRecordId, "--reason", "session ended"]);
+  } catch { /* best-effort on exit */ }
+  presenceRecordId = null;
+}
+
+/**
+ * List agents with open presence records, excluding stale ones.
  */
 export function listAgents(config: Config): AgentPresence[] {
   const all = bdJson<BeadsMessage[]>(config, [
     "list", "--type", "chore", "--label", "kind:presence", "--status", "open",
   ]);
 
-  return all.map((rec) => {
-    const agentId = rec.labels?.find((l) => l.startsWith("agent:"))?.slice(6) ?? rec.title;
-    const baseId = rec.labels?.find((l) => l.startsWith("base:"))?.slice(5) ?? "unknown";
-    const envLabel = rec.labels?.find((l) => l.startsWith("env:"))?.slice(4) ?? null;
-    const channel = rec.labels?.find((l) => l.startsWith("channel:"))?.slice(8) ?? null;
+  return all
+    .filter((rec) => !isStale(rec))
+    .map((rec) => {
+      const agentId = rec.labels?.find((l) => l.startsWith("agent:"))?.slice(6) ?? rec.title;
+      const baseId = rec.labels?.find((l) => l.startsWith("base:"))?.slice(5) ?? "unknown";
+      const envLabel = rec.labels?.find((l) => l.startsWith("env:"))?.slice(4) ?? null;
+      const channel = rec.labels?.find((l) => l.startsWith("channel:"))?.slice(8) ?? null;
 
-    return { agent_id: agentId, base_id: baseId, env: envLabel, channel, registered_at: rec.created_at };
-  });
+      return {
+        agent_id: agentId,
+        base_id: baseId,
+        env: envLabel,
+        channel,
+        registered_at: rec.created_at,
+        last_seen: rec.updated_at,
+        stale: false,
+      };
+    });
 }
