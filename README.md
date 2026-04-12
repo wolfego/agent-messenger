@@ -56,53 +56,49 @@ Both agents connect to the same MCP server with different identities. Messages r
 
 **Messaging:**
 
-| Tool                 | Description                                        |
-| -------------------- | -------------------------------------------------- |
-| `send_message`       | Send a message (supports `task_id` for linking)    |
-| `check_inbox`        | Check for unread messages                          |
-| `reply`              | Reply to a message (auto-threads, optional `task_id`) |
-| `get_thread`         | Get full conversation thread                       |
-| `list_conversations` | List all conversations                             |
-| `mark_read`          | Mark a message as read                             |
-| `set_channel`        | Join a channel for multi-agent isolation            |
-| `set_identity`       | Rename this agent instance                         |
-| `whoami`             | Show identity, base ID, and channel                |
+| Tool                 | Cursor | CC    | Description                                           |
+| -------------------- | ------ | ----- | ----------------------------------------------------- |
+| `send_message`       | `#sm`  | `/sm` | Send a message (supports `task_id` for linking)       |
+| `check_inbox`        | `#cm`  | `/cm` | Check for unread messages                             |
+| `reply`              |        |       | Reply to a message (auto-threads, optional `task_id`) |
+| `get_thread`         |        |       | Get full conversation thread                          |
+| `list_conversations` |        |       | List all conversations                                |
+| `mark_read`          |        |       | Mark a message as read                                |
+| `set_channel`        | `#ch`  | `/ch` | Join a channel for multi-agent isolation              |
+| `set_identity`       | `#id`  | `/id` | Rename this agent instance                            |
+| `whoami`             | `#wi`  | `/wi` | Show identity, base ID, and channel                   |
 
 **Tasks:**
 
-| Tool             | Description                                             |
-| ---------------- | ------------------------------------------------------- |
-| `create_task`    | Create a task in Beads                                  |
-| `create_epic`    | Create an epic for phased planning                      |
-| `list_tasks`     | List tasks with filters (status, priority, ready-only)  |
-| `show_task`      | Show task details and linked messages                   |
-| `update_task`    | Update status, notes, labels, priority, or assignee (smart-routes close/reopen) |
-| `claim_task`     | Atomically assign and start a task                      |
-| `close_task`     | Close a completed task                                  |
-| `manage_deps`    | Add, remove, or list dependencies between tasks         |
-| `blocked_tasks`  | Show tasks blocked by unresolved dependencies           |
-| `project_stats`  | Project health snapshot: counts, ready work, lead time  |
+| Tool             | Cursor | CC    | Description                                            |
+| ---------------- | ------ | ----- | ------------------------------------------------------ |
+| `create_task`    | `#ct`  | `/ct` | Create a task in Beads                                 |
+| `create_epic`    |        |       | Create an epic for phased planning                     |
+| `list_tasks`     | `#lt`  | `/lt` | List tasks with filters (status, priority, ready-only) |
+| `show_task`      | `#st`  | `/st` | Show task details and linked messages                  |
+| `update_task`    |        |       | Update status, notes, labels, priority, or assignee    |
+| `claim_task`     |        |       | Atomically assign and start a task                     |
+| `close_task`     |        |       | Close a completed task                                 |
+| `manage_deps`    |        |       | Add, remove, or list dependencies between tasks        |
+| `blocked_tasks`  |        |       | Show tasks blocked by unresolved dependencies          |
+| `project_stats`  |        |       | Project health snapshot: counts, ready work, lead time |
 
 **Discovery:**
 
-| Tool           | Description                                 |
-| -------------- | ------------------------------------------- |
-| `list_agents`  | Show agents currently online                |
-| `query_beads`  | Query Beads DB (messages, tasks, any type) with preset and raw label filters |
+| Tool           | Cursor | CC    | Description                                      |
+| -------------- | ------ | ----- | ------------------------------------------------ |
+| `list_agents`  | `#la`  | `/la` | Show agents currently online                     |
+| `query_beads`  | `#log` | `/log`| Query Beads DB (messages, tasks, any type)       |
 
 **Workflows:**
 
-| Tool                   | Description                                                              |
-| ---------------------- | ------------------------------------------------------------------------ |
-| `scaffold_workflow`    | Create a workflow doc from template (orchestrate or debug) on first use  |
-| `workflow_checkpoint`  | Record a workflow phase transition for tracking progress                 |
-| `workflow_status`      | Show current phase and history for active workflows                     |
+| Tool                  | Cursor              | CC              | Description                                     |
+| --------------------- | ------------------- | --------------- | ----------------------------------------------- |
+| `scaffold_workflow`   | `#orchestrate` `#debug` | `/orchestrate` `/debug` | Create workflow doc from template on first use |
+| `workflow_checkpoint` |                     |                 | Record a workflow phase transition              |
+| `workflow_status`     | `#workflow status`  |                 | Show current phase for active workflows         |
 
-## Shortcuts
-
-**Cursor** (via rules): `#help` `#cm` `#sm` `#ch` `#id` `#wi` `#ct` `#lt` `#st` `#rt` `#la` `#log` `#orchestrate` `#debug` `#workflow status`
-
-**Claude Code** (via skills): `/am` `/cm` `/sm` `/ch` `/id` `/wi` `/ct` `/lt` `/st` `/rt` `/la` `/log` `/orchestrate` `/debug`
+Additional shortcuts without a direct tool: `#help` / `/am` (show commands), `#rt` / `/rt` (ready tasks via `list_tasks`).
 
 ## Workflows
 
