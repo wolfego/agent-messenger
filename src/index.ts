@@ -22,12 +22,15 @@ import { manageDepsSchema, handleManageDeps } from "./tools/manage-deps.js";
 import { blockedTasksSchema, handleBlockedTasks } from "./tools/blocked-tasks.js";
 import { projectStatsSchema, handleProjectStats } from "./tools/project-stats.js";
 import { queryBeadsSchema, handleQueryBeads } from "./tools/query-beads.js";
+import { scaffoldWorkflowSchema, handleScaffoldWorkflow } from "./tools/scaffold-workflow.js";
+import { workflowCheckpointSchema, handleWorkflowCheckpoint } from "./tools/workflow-checkpoint.js";
+import { workflowStatusSchema, handleWorkflowStatus } from "./tools/workflow-status.js";
 import { cleanStalePresence, registerPresence, deregisterPresence } from "./beads.js";
 
 const config = parseConfig();
 
 const server = new McpServer(
-  { name: "agent-messenger", version: "0.1.7" },
+  { name: "agent-messenger", version: "0.2.0" },
   {
     capabilities: { tools: {} },
     instructions: `Agent messenger for inter-agent communication. You are ${config.agentId} (base: ${config.baseId}, env: ${config.env})${config.channel ? ` on channel '${config.channel}'` : ""}. Use send_message to contact other agents, check_inbox to see messages addressed to you. If multiple agent pairs are active in this project, use set_channel to isolate conversations. On your FIRST turn in a new conversation, call set_identity with a short name reflecting your task (e.g. 'cc-web-ui', 'cc-auth-tests'). This helps other agents and the user identify you in list_agents.`,
@@ -174,6 +177,27 @@ server.tool(
   "Query the Beads database. Use type 'message' to browse message history, or any other type for tasks/epics/chores. Convenience params (from, to, channel) translate to label filters automatically.",
   queryBeadsSchema,
   handleQueryBeads(config)
+);
+
+server.tool(
+  "scaffold_workflow",
+  "Create a workflow document from template (orchestrate or debug). Creates docs/guidance/workflows/<name>.md if it doesn't exist. Call this before starting a workflow for the first time.",
+  scaffoldWorkflowSchema,
+  handleScaffoldWorkflow(config)
+);
+
+server.tool(
+  "workflow_checkpoint",
+  "Record a workflow phase transition (e.g. brainstorm started, spec-review completed). Creates a checkpoint in Beads for tracking progress.",
+  workflowCheckpointSchema,
+  handleWorkflowCheckpoint(config)
+);
+
+server.tool(
+  "workflow_status",
+  "Show current phase and history for active workflows. Filter by workflow name or feature.",
+  workflowStatusSchema,
+  handleWorkflowStatus(config)
 );
 
 async function main() {

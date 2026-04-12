@@ -314,6 +314,75 @@ function findRootId(config: Config, msg: BeadsMessage): string {
 }
 
 // ---------------------------------------------------------------------------
+// Workflow Checkpoints
+// ---------------------------------------------------------------------------
+
+export function createWorkflowCheckpoint(
+  config: Config,
+  params: {
+    workflow: string;
+    feature: string;
+    phase: string;
+    status: "started" | "completed";
+  }
+): BeadsMessage {
+  const title = `${params.workflow}: ${params.feature} — ${params.phase} ${params.status}`;
+  const labels = [
+    "kind:workflow-checkpoint",
+    `workflow:${params.workflow}`,
+    `feature:${params.feature}`,
+    `phase:${params.phase}`,
+    `status:${params.status}`,
+  ];
+
+  return bdJson<BeadsMessage>(config, [
+    "create", title,
+    "--type", "chore",
+    "--ephemeral",
+    "--labels", labels.join(","),
+    "--priority", "4",
+    "--no-history",
+  ]);
+}
+
+export interface WorkflowCheckpoint {
+  id: string;
+  workflow: string;
+  feature: string;
+  phase: string;
+  status: string;
+  timestamp: string;
+}
+
+export function queryWorkflowCheckpoints(
+  config: Config,
+  params: { workflow?: string; feature?: string }
+): WorkflowCheckpoint[] {
+  const labelParts = ["kind:workflow-checkpoint"];
+  if (params.workflow) labelParts.push(`workflow:${params.workflow}`);
+  if (params.feature) labelParts.push(`feature:${params.feature}`);
+
+  const raw = bdJson<BeadsMessage[]>(config, [
+    "list", "--type", "chore",
+    "--label", labelParts.join(","),
+    "--include-infra",
+    "--flat",
+    "--sort", "created",
+    "--reverse",
+    "--limit", "50",
+  ]);
+
+  return raw.map((r) => ({
+    id: r.id,
+    workflow: r.labels?.find((l) => l.startsWith("workflow:"))?.slice(9) ?? "unknown",
+    feature: r.labels?.find((l) => l.startsWith("feature:"))?.slice(8) ?? "unknown",
+    phase: r.labels?.find((l) => l.startsWith("phase:"))?.slice(6) ?? "unknown",
+    status: r.labels?.find((l) => l.startsWith("status:"))?.slice(7) ?? "unknown",
+    timestamp: r.created_at,
+  }));
+}
+
+// ---------------------------------------------------------------------------
 // Task-Message Linking
 // ---------------------------------------------------------------------------
 

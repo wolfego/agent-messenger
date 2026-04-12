@@ -52,7 +52,7 @@ Both agents connect to the same MCP server with different identities. Messages r
                           └─────────────────────┘
 ```
 
-## Tools (22)
+## Tools (25)
 
 **Messaging:**
 
@@ -90,19 +90,31 @@ Both agents connect to the same MCP server with different identities. Messages r
 | `list_agents`  | Show agents currently online                |
 | `query_beads`  | Query Beads DB (messages, tasks, any type) with preset and raw label filters |
 
+**Workflows:**
+
+| Tool                   | Description                                                              |
+| ---------------------- | ------------------------------------------------------------------------ |
+| `scaffold_workflow`    | Create a workflow doc from template (orchestrate or debug) on first use  |
+| `workflow_checkpoint`  | Record a workflow phase transition for tracking progress                 |
+| `workflow_status`      | Show current phase and history for active workflows                     |
+
 ## Shortcuts
 
-**Cursor** (via rules): `#help` `#cm` `#sm` `#ch` `#id` `#wi` `#ct` `#lt` `#st` `#rt` `#la` `#log` `#orchestrate`
+**Cursor** (via rules): `#help` `#cm` `#sm` `#ch` `#id` `#wi` `#ct` `#lt` `#st` `#rt` `#la` `#log` `#orchestrate` `#debug` `#workflow status`
 
-**Claude Code** (via skills): `/am` `/cm` `/sm` `/ch` `/id` `/wi` `/ct` `/lt` `/st` `/rt` `/la` `/log` `/orchestrate`
+**Claude Code** (via skills): `/am` `/cm` `/sm` `/ch` `/id` `/wi` `/ct` `/lt` `/st` `/rt` `/la` `/log` `/orchestrate` `/debug`
 
-## Orchestrate Workflow
+## Workflows
 
-`#orchestrate <feature>` (Cursor) or `/orchestrate` (CC) activates a structured development workflow pairing Cursor as **orchestrator** (brainstormer, designer, spec writer, plan reviewer) and Claude Code as **implementer** (spec verifier, plan writer, coder).
+agent-messenger includes two structured workflows that pair Cursor (orchestrator) with Claude Code (implementer). Each workflow is defined by a **living document** in your project that evolves through use.
 
-Built on the [superpowers](https://github.com/superpowers-ai/superpowers) process: Cursor uses `brainstorming` for design rigor, CC uses `writing-plans` and `subagent-driven-development` for implementation with TDD. Abandon at any step — no state to clean up.
+**Orchestrate** (`#orchestrate <feature>`) — structured feature development: brainstorm, spec, plan, implement, verify. Built on [superpowers](https://github.com/superpowers-ai/superpowers).
 
-See [docs/setup-guide.md](docs/setup-guide.md) for the full workflow description.
+**Debug** (`#debug <description>`) — systematic two-agent debugging: triage, hypothesize, investigate, diagnose, fix, verify. Includes a Diagnostic Resources section for project-specific tools.
+
+Workflow docs are created automatically on first use at `docs/guidance/workflows/`. Phase transitions are tracked in Beads via `workflow_checkpoint`. Abandon at any step — no state to clean up.
+
+See [docs/setup-guide.md](docs/setup-guide.md) for the full workflow descriptions.
 
 ## Identity & Multi-Agent
 

@@ -67,6 +67,8 @@ Both agents have shortcut commands — `#` prefix in Cursor, `/` prefix in Claud
 | List agents      | `#la`          | `/la`          | See who is currently online                         |
 | Message history  | `#log`         | `/log`         | Browse recent messages, optionally filter by sender |
 | Orchestrate      | `#orchestrate` | `/orchestrate` | Start the structured orchestrator/implementer flow  |
+| Debug            | `#debug`       | `/debug`       | Start the systematic two-agent debug workflow       |
+| Workflow status  | `#workflow status` | —          | Show current phase for active workflows             |
 
 ## Identity
 
@@ -103,19 +105,45 @@ Identity naming and channels can be combined.
 3. **Cursor:** `#cm`
    - Cursor reads the reply and acts on it.
 
-## Workflow: Orchestrate
+## Workflows
 
-`#orchestrate <feature>` activates a structured development workflow pairing Cursor as **orchestrator** and Claude Code as **implementer**. Built on the [superpowers](https://github.com/superpowers-ai/superpowers) process. Abandon at any step — no state to clean up.
+agent-messenger includes two structured workflows. Each is defined by a **living document** in your project — created automatically on first use, then refined after each session.
 
-| Phase          | Cursor (orchestrator)                    | Claude Code (implementer)                   |
-| -------------- | ---------------------------------------- | ------------------------------------------- |
-| Brainstorm     | Explores approaches, presents trade-offs | Challenges assumptions, proposes alternatives |
-| Spec           | Writes spec doc, runs review loop        | Verifies completeness, flags gaps            |
-| Plan           | Reviews plan for TDD, ordering, coverage | Writes bite-sized implementation plan        |
-| Implementation | Monitors, unblocks, answers questions    | Implements with TDD, reviews per task        |
-| Finish         | Reviews changes, verifies tests          | Presents merge/PR/keep/discard options       |
+### Orchestrate
 
-**Example:**
+`#orchestrate <feature>` pairs Cursor as **orchestrator** and Claude Code as **implementer** for structured feature development. Built on [superpowers](https://github.com/superpowers-ai/superpowers).
+
+| Phase      | Cursor (orchestrator)                    | Claude Code (implementer)                    |
+| ---------- | ---------------------------------------- | -------------------------------------------- |
+| Brainstorm | Explores approaches, presents trade-offs | Challenges assumptions, proposes alternatives |
+| Spec       | Writes spec doc, runs 3-pass review      | Verifies completeness, flags gaps             |
+| Plan       | Reviews plan for TDD, ordering, coverage | Writes bite-sized implementation plan         |
+| Implement  | Monitors, unblocks, answers questions    | Implements with TDD, reviews per task         |
+| Verify     | Reviews changes, verifies tests          | Runs quality gates, presents options          |
+| Closeout   | Updates docs, creates PR                 | Updates workflow doc with lessons learned      |
+
+On first use, `scaffold_workflow` creates `docs/guidance/workflows/orchestrate.md` — the full process definition including roles, review philosophy, and communication patterns. This document evolves with your project.
+
+### Debug
+
+`#debug <description>` pairs Cursor as **triager/diagnostician** and Claude Code as **investigator/fixer** for systematic bug investigation.
+
+| Phase       | Cursor                            | Claude Code                              |
+| ----------- | --------------------------------- | ---------------------------------------- |
+| Triage      | Gathers symptoms, reads diag docs | —                                        |
+| Hypothesize | Ranks hypotheses by likelihood    | —                                        |
+| Investigate | Directs investigation             | Runs diagnostics, reports raw findings   |
+| Diagnose    | Narrows to root cause             | —                                        |
+| Fix         | Reviews fix approach              | TDD: failing test, fix, verify           |
+| Verify      | Confirms no regressions           | Runs full quality gates                  |
+
+On first use, `scaffold_workflow` creates `docs/guidance/workflows/debug.md` — includes a **Diagnostic Resources** section where you list your project's diagnostic tools, scripts, known failure patterns, and monitoring URLs. Agents entering a debug session read this first.
+
+### Workflow tracking
+
+Phase transitions are recorded in Beads via `workflow_checkpoint`. Use `#workflow status` to see where active workflows stand. Abandon at any step — no state to clean up.
+
+### Example
 
 ```
 [Cursor] #orchestrate add WebSocket support
