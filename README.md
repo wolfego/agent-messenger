@@ -3,7 +3,7 @@
 [![CI](https://github.com/wolfego/agent-messenger/actions/workflows/ci.yml/badge.svg)](https://github.com/wolfego/agent-messenger/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-MCP server for AI agent-to-agent messaging. Lets Cursor and Claude Code agents send messages, reply in threads, and coordinate work — backed by [Beads](https://github.com/steveyegge/beads) for persistent, version-controlled storage.
+MCP server that unifies agent-to-agent messaging and task management for Cursor and Claude Code (in a Cursor terminal or tab). Agents send messages, reply in threads, create and track tasks, manage dependencies, and follow structured workflows — all backed by [Beads](https://github.com/steveyegge/beads) for persistent, version-controlled storage that survives across sessions.
 
 ## Quick Start
 
@@ -34,71 +34,45 @@ agent-messenger doctor
 
 ## How It Works
 
-Both agents connect to the same MCP server with different identities. Messages route via labels (`to:`, `from:`, `unread`) stored in a Beads (Dolt) database. Threading uses `replies_to` graph links. Channels isolate conversations when multiple agent pairs are active.
+Both agents connect to the same MCP server with different identities. Messages and tasks are stored in a Beads (Dolt) database — messages route via labels (`to:`, `from:`, `unread`), tasks track work with priorities, dependencies, and status. Threading uses `replies_to` graph links. Channels isolate conversations when multiple agent pairs are active.
 
 ```
 ┌──────────────┐         ┌─────────────────────┐         ┌──────────────┐
 │    Cursor     │◄─stdio─►│  agent-messenger MCP │◄─stdio─►│  Claude Code  │
-│  cursor-opus  │         │                     │         │  claude-code  │
-│               │         │  send_message       │         │               │
-│ #cm #sm #id   │         │  check_inbox        │         │ /cm /sm /id   │
-└──────────────┘         │  reply / get_thread  │         └──────────────┘
-                          │  set_channel / ...   │
-                          │                     │
-                          │  ┌───────────────┐  │
-                          │  │ Beads (bd CLI) │  │
-                          │  │ .beads/ Dolt DB│  │
-                          │  └───────────────┘  │
+│  one shared   │         │                     │         │  cc-design    │
+│  connection   │         │  send_message       │         │ /cm /sm /id   │
+│ #cm #sm #id   │         │  check_inbox        │         └──────────────┘
+└──────────────┘         │  reply / get_thread  │
+                          │  set_channel / ...   │         ┌──────────────┐
+                          │                     │◄─stdio─►│  Claude Code  │
+                          │  ┌───────────────┐  │         │  cc-impl      │
+                          │  │ Beads (bd CLI) │  │         │ /cm /sm /id   │
+                          │  │ .beads/ Dolt DB│  │         └──────────────┘
+                          │  └───────────────┘  │              ...
                           └─────────────────────┘
 ```
 
-## Tools (25)
+## Shortcuts (25 tools)
 
-**Messaging:**
+| Command            | Cursor           | CC               | What it does                                     |
+| ------------------ | ---------------- | ---------------- | ------------------------------------------------ |
+| Check inbox        | `#cm`            | `/cm`            | Read and act on unread messages                  |
+| Send message       | `#sm`            | `/sm`            | Send a message to another agent                  |
+| Set channel        | `#ch`            | `/ch`            | Isolate conversations for multi-agent setups     |
+| Set identity       | `#id`            | `/id`            | Rename this agent (e.g. `cc-design`)             |
+| Who am I           | `#wi`            | `/wi`            | Show identity, base ID, and channel              |
+| Create task        | `#ct`            | `/ct`            | Create a task in Beads                           |
+| List tasks         | `#lt`            | `/lt`            | Filter by status, priority, or ready-only        |
+| Show task          | `#st`            | `/st`            | Task details and linked messages                 |
+| Ready tasks        | `#rt`            | `/rt`            | Unblocked tasks ready to work on                 |
+| List agents        | `#la`            | `/la`            | Who is currently online                          |
+| Browse history     | `#log`           | `/log`           | Message history, filter by sender                |
+| Orchestrate        | `#orchestrate`   | `/orchestrate`   | Start orchestrator/implementer workflow           |
+| Debug              | `#debug`         | `/debug`         | Start systematic two-agent debug workflow         |
+| Workflow status    | `#ws`            | `/ws`            | Current phase for active workflows                |
+| Help               | `#help`          | `/am`            | Show available commands                          |
 
-| Tool                 | Cursor | CC    | Description                                           |
-| -------------------- | ------ | ----- | ----------------------------------------------------- |
-| `send_message`       | `#sm`  | `/sm` | Send a message (supports `task_id` for linking)       |
-| `check_inbox`        | `#cm`  | `/cm` | Check for unread messages                             |
-| `reply`              |        |       | Reply to a message (auto-threads, optional `task_id`) |
-| `get_thread`         |        |       | Get full conversation thread                          |
-| `list_conversations` |        |       | List all conversations                                |
-| `mark_read`          |        |       | Mark a message as read                                |
-| `set_channel`        | `#ch`  | `/ch` | Join a channel for multi-agent isolation              |
-| `set_identity`       | `#id`  | `/id` | Rename this agent instance                            |
-| `whoami`             | `#wi`  | `/wi` | Show identity, base ID, and channel                   |
-
-**Tasks:**
-
-| Tool             | Cursor | CC    | Description                                            |
-| ---------------- | ------ | ----- | ------------------------------------------------------ |
-| `create_task`    | `#ct`  | `/ct` | Create a task in Beads                                 |
-| `create_epic`    |        |       | Create an epic for phased planning                     |
-| `list_tasks`     | `#lt`  | `/lt` | List tasks with filters (status, priority, ready-only) |
-| `show_task`      | `#st`  | `/st` | Show task details and linked messages                  |
-| `update_task`    |        |       | Update status, notes, labels, priority, or assignee    |
-| `claim_task`     |        |       | Atomically assign and start a task                     |
-| `close_task`     |        |       | Close a completed task                                 |
-| `manage_deps`    |        |       | Add, remove, or list dependencies between tasks        |
-| `blocked_tasks`  |        |       | Show tasks blocked by unresolved dependencies          |
-| `project_stats`  |        |       | Project health snapshot: counts, ready work, lead time |
-
-**Discovery:**
-
-| Tool           | Cursor | CC    | Description                                      |
-| -------------- | ------ | ----- | ------------------------------------------------ |
-| `list_agents`  | `#la`  | `/la` | Show agents currently online                     |
-| `query_beads`  | `#log` | `/log`| Query Beads DB (messages, tasks, any type)       |
-
-**Workflows:**
-
-| Tool                  | Cursor              | CC              | Description                                     |
-| --------------------- | ------------------- | --------------- | ----------------------------------------------- |
-| `scaffold_workflow`   | `#orchestrate` `#debug` | `/orchestrate` `/debug` | Create workflow doc from template on first use |
-| `workflow_checkpoint` |                     |                 | Record a workflow phase transition              |
-| `workflow_status`     | `#workflow status`  |                 | Show current phase for active workflows         |
-
-Additional shortcuts without a direct tool: `#help` / `/am` (show commands), `#rt` / `/rt` (ready tasks via `list_tasks`).
+Agents also use tools automatically on your behalf (threading, replying, managing dependencies, etc.). See [docs/development.md](docs/development.md) for the full 25-tool API reference.
 
 ## Workflows
 
@@ -112,15 +86,31 @@ Workflow docs are created automatically on first use at `docs/guidance/workflows
 
 See [docs/setup-guide.md](docs/setup-guide.md) for the full workflow descriptions.
 
+## Task Management
+
+Agents can create, track, and coordinate work — not just talk about it. Tasks are stored in Beads (a Dolt database), so they persist across sessions, agent restarts, and conversations.
+
+**Lifecycle:** Create a task (`#ct`) → claim it (`claim_task`) → work → close it (`close_task`). Tasks have status, priority, labels, assignee, and notes.
+
+**Epics:** Group related tasks under an epic for phased planning. Agents can create epics and nest tasks beneath them.
+
+**Dependencies:** Tasks can block, track, or relate to each other. The dependency graph powers `#rt` (ready tasks) — showing only tasks whose blockers are resolved, so agents always know what to work on next.
+
+**Task-message linking:** Pass `task_id` when sending or replying to link conversations to work items. `show_task` then surfaces all related messages. Context flows both directions — the discussion and the work stay connected.
+
+**Project stats:** `project_stats` gives a health snapshot: open/closed counts, ready work, lead time, and recent activity.
+
+Unlike messages (ephemeral conversations), tasks are the persistent record of what needs to happen, what's in progress, and what's done.
+
 ## Identity & Multi-Agent
 
-Each agent gets a unique session ID on startup (e.g. `claude-code-a3f2`). The base ID (`claude-code`) is shared across all instances — messages to the base ID reach every instance. Use `set_identity` (`#id` / `/id`) to pick a memorable name like `cc-design`.
+**Cursor** shares a single MCP connection across all agent tabs (Opus, Codex, etc.) in a workspace. All Cursor agents appear as one identity — when Claude Code messages "cursor", every Cursor agent receives it.
 
-When multiple agent windows/terminals are open in the same project:
+**Claude Code** gets a separate MCP connection per instance (whether in a terminal or a tab), so each has its own identity (e.g. `claude-code-a3f2`, `claude-code-b1c9`). Cursor can address them individually.
 
-**Name them:** `#id cursor-design`, `/id cc-design` — then address by name
+This means: Cursor agents can talk to multiple CC instances independently, but CC agents messaging Cursor are messaging all Cursor agents at once.
 
-**Use channels:** `#ch design-review`, `/ch design-review` — only paired agents see messages
+Use `set_identity` to pick memorable names — `#id cursor-lead` in Cursor, `/id cc-design` and `/id cc-impl` in each CC instance. Use channels (`#ch` / `/ch`) to isolate conversations when multiple CC instances are active.
 
 ## CLI Commands
 
@@ -136,7 +126,7 @@ When multiple agent windows/terminals are open in the same project:
 
 | Flag               | Default        | Description                       |
 | ------------------ | -------------- | --------------------------------- |
-| `--cursor-id <id>` | `cursor-opus`  | Cursor agent ID                   |
+| `--cursor-id <id>` | `cursor`       | Cursor agent ID                   |
 | `--cc-id <id>`     | `claude-code`  | Claude Code agent ID              |
 | `--dry-run`        |                | Preview changes without writing   |
 | `--skip-beads`     |                | Skip Beads/Dolt setup             |

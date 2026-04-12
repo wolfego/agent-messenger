@@ -192,7 +192,7 @@ The user may type these short commands instead of full sentences:
 - \`#status\` — Status overview. Run \`agent-messenger status\` in the terminal and show the output to the user.
 - \`#orchestrate <feature>\` — Start the orchestrator workflow. Call \`scaffold_workflow\` with \`name: "orchestrate"\` (creates the workflow doc if it doesn't exist). Read the returned path end-to-end. Follow its phases. Record phase transitions with \`workflow_checkpoint\`. Ask user approval before each send to CC. Actions to send: \`challenge\`, \`verify-spec\`, \`implement\`, \`review\`.
 - \`#debug <description>\` — Start the debug workflow. Call \`scaffold_workflow\` with \`name: "debug"\` (creates the workflow doc if it doesn't exist). Read the returned path end-to-end — especially the Diagnostic Resources section. Follow its phases. Actions to send: \`investigate\`, \`reproduce\`, \`fix\`, \`verify-fix\`.
-- \`#workflow status\` — Show active workflow progress. Call \`workflow_status\` and present the current phase for each active feature.
+- \`#ws\` — Show active workflow progress. Call \`workflow_status\` and present the current phase for each active feature.
 
 ## Sending messages
 
@@ -252,6 +252,9 @@ const SKILLS: Array<{ name: string; description: string; body: string; noInvoke?
 | \`/rt\`   | Ready tasks — show tasks with no blockers |
 | \`/la\`   | List agents — show who is currently online |
 | \`/log\`  | Message history — browse recent messages, optionally filter by sender |
+| \`/orchestrate\` | Start the orchestrator/implementer workflow |
+| \`/debug\` | Start the two-agent debug workflow |
+| \`/ws\`   | Workflow status — current phase for active workflows |
 
 **Identity:** Each agent gets a unique session ID on startup (e.g. \`claude-code-a3f2\`). Messages to your base ID (\`claude-code\`) reach all instances. Use \`/id\` to pick a memorable name like \`cc-design\`.
 

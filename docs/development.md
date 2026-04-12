@@ -141,9 +141,15 @@ Full parameter details for each tool:
 
 **`list_agents`** — no params
 
-### General Query
-
 **`query_beads`** — `type` (string: message/task/bug/feature/epic/chore), `from?` (string), `to?` (string), `channel?` (string), `labels?` (string[]), `status?` (open/closed/all), `limit?` (number), `sort?` (created/updated/priority), `reverse?` (boolean)
+
+### Workflows
+
+**`scaffold_workflow`** — `name` (string: "orchestrate" | "debug"), `path?` (string override for doc location)
+
+**`workflow_checkpoint`** — `workflow` (string), `feature` (string), `phase` (string), `status` ("started" | "completed")
+
+**`workflow_status`** — `workflow?` (string), `feature?` (string)
 
 ## Dolt Server Management
 
