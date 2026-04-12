@@ -189,6 +189,10 @@ The user may type these short commands instead of full sentences:
 - \`#rt\` — Ready tasks. Call \`list_tasks\` with \`ready_only: true\` to show tasks with no blockers.
 - \`#la\` — List agents. Call \`list_agents\` to see who is currently online in this project.
 - \`#log\` — Message history. Call \`query_beads\` with \`type: "message"\` and \`limit: 20\`. If the user specifies an agent name, pass it as \`from\`. Show a concise summary: timestamp, from, to, subject.
+- \`#status\` — Status overview. Run \`agent-messenger status\` in the terminal and show the output to the user.
+- \`#orchestrate <feature>\` — Start the orchestrator workflow. Call \`scaffold_workflow\` with \`name: "orchestrate"\` (creates the workflow doc if it doesn't exist). Read the returned path end-to-end. Follow its phases. Record phase transitions with \`workflow_checkpoint\`. Ask user approval before each send to CC. Actions to send: \`challenge\`, \`verify-spec\`, \`implement\`, \`review\`.
+- \`#debug <description>\` — Start the debug workflow. Call \`scaffold_workflow\` with \`name: "debug"\` (creates the workflow doc if it doesn't exist). Read the returned path end-to-end — especially the Diagnostic Resources section. Follow its phases. Actions to send: \`investigate\`, \`reproduce\`, \`fix\`, \`verify-fix\`.
+- \`#workflow status\` — Show active workflow progress. Call \`workflow_status\` and present the current phase for each active feature.
 
 ## Sending messages
 
@@ -252,6 +256,40 @@ const SKILLS: Array<{ name: string; description: string; body: string; noInvoke?
 **Identity:** Each agent gets a unique session ID on startup (e.g. \`claude-code-a3f2\`). Messages to your base ID (\`claude-code\`) reach all instances. Use \`/id\` to pick a memorable name like \`cc-design\`.
 
 Messages are automatically marked as read when you check your inbox.`,
+  },
+  {
+    name: "orchestrate",
+    description: 'Show the orchestrate workflow overview. Use when the user says "/orchestrate" or asks about the orchestrator/implementer workflow.',
+    body: `Read \`docs/guidance/workflows/orchestrate.md\` for the full process. If it doesn't exist, this project hasn't started the orchestrate workflow yet — ask the Cursor orchestrator to run \`#orchestrate\` first.
+
+**Your role (implementer):** Respond to action fields in messages from the orchestrator:
+
+| Action | Your response |
+|--------|---------------|
+| \`challenge\` | Challenge the brainstorm. Poke holes, suggest alternatives, raise edge cases, question assumptions. Reply with counter-proposals. |
+| \`verify-spec\` | Read the spec in \`context_files\`. Verify completeness, flag gaps. Then write an implementation plan using \`superpowers:writing-plans\`. Save to \`docs/superpowers/plans/YYYY-MM-DD-<feature>.md\`. Reply with notes + plan path. |
+| \`implement\` | Read the plan in \`context_files\`. Execute using \`superpowers:executing-plans\` or \`superpowers:subagent-driven-development\`. TDD is mandatory. Reply when done. |
+| \`review\` | Review the referenced code/files. Push back if wrong. Reply with findings. |
+
+When you receive a message with one of these actions, proceed directly. Include \`context_files\` in replies when you've created or modified files.`,
+    noInvoke: true,
+  },
+  {
+    name: "debug",
+    description: 'Show the debug workflow overview. Use when the user says "/debug" or asks about the two-agent debug workflow.',
+    body: `Read \`docs/guidance/workflows/debug.md\` for the full process. If it doesn't exist, this project hasn't started the debug workflow yet — ask the Cursor orchestrator to run \`#debug\` first.
+
+**Your role (investigator/fixer):** Respond to action fields in messages from the orchestrator:
+
+| Action | Your response |
+|--------|---------------|
+| \`investigate\` | Run diagnostic tools, check logs, trace code paths per the hypothesis provided. Report **raw findings** (observed behavior, not conclusions). |
+| \`reproduce\` | Create a minimal reproduction — ideally a failing test. Report repro steps. |
+| \`fix\` | Implement the fix using TDD: write a failing test that reproduces the bug, then fix it, then verify. |
+| \`verify-fix\` | Run full quality gates (lint, typecheck, test, build). Confirm no regressions. |
+
+Report raw findings, not interpretations. If blocked (need access, can't reproduce), report immediately rather than guessing.`,
+    noInvoke: true,
   },
   {
     name: "cm",
