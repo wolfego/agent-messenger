@@ -68,7 +68,7 @@ Both agents have shortcut commands — `#` prefix in Cursor, `/` prefix in Claud
 | Message history  | `#log`         | `/log`         | Browse recent messages, optionally filter by sender |
 | Orchestrate      | `#orchestrate` | `/orchestrate` | Start the structured orchestrator/implementer flow  |
 | Debug            | `#debug`       | `/debug`       | Start the systematic two-agent debug workflow       |
-| Workflow status  | `#workflow status` | —          | Show current phase for active workflows             |
+| Workflow status  | `#ws`          | `/ws`          | Show current phase for active workflows             |
 
 ## Identity
 
@@ -141,7 +141,7 @@ On first use, `scaffold_workflow` creates `docs/guidance/workflows/debug.md` —
 
 ### Workflow tracking
 
-Phase transitions are recorded in Beads via `workflow_checkpoint`. Use `#workflow status` to see where active workflows stand. Abandon at any step — no state to clean up.
+Phase transitions are recorded in Beads via `workflow_checkpoint`. Use `#ws` / `/ws` to see where active workflows stand. Abandon at any step — no state to clean up.
 
 ### Example
 

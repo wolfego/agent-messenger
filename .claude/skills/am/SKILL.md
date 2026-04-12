@@ -38,7 +38,9 @@ Show the user this list of available agent-messenger commands:
 
 | Command        | Description |
 |----------------|-------------|
-| `/orchestrate` | Show orchestrate workflow overview — structured Cursor (orchestrator) + CC (implementer) development flow |
+| `/orchestrate` | Start the orchestrator/implementer workflow |
+| `/debug`       | Start the two-agent debug workflow |
+| `/ws`          | Workflow status — current phase for active workflows |
 
 **Identity:** Each agent gets a unique session ID on startup (e.g. `claude-code-a3f2`). Messages to your base ID (`claude-code`) reach all instances. Use `/id` to pick a memorable name like `cc-design`.
 
