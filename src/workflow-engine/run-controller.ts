@@ -83,6 +83,19 @@ export class RunController {
   }
 
   /**
+   * Register a workflow definition for an existing run.
+   *
+   * Required after process restart before calling getReadyStages() or
+   * resumeRun(), since in-memory definitions are lost on restart.
+   *
+   * @param runId - The run identifier
+   * @param workflow - The workflow definition to associate
+   */
+  registerDefinition(runId: RunId, workflow: WorkflowDefinition): void {
+    this.definitions.set(runId, workflow);
+  }
+
+  /**
    * Retrieve a full snapshot of run + stage state from persistence.
    *
    * @param runId - The run identifier
@@ -110,7 +123,10 @@ export class RunController {
   getReadyStages(snapshot: RunSnapshot): StageRecord[] {
     const workflow = this.definitions.get(snapshot.run.runId);
     if (!workflow) {
-      return [];
+      throw new Error(
+        `No workflow definition cached for run ${snapshot.run.runId}. ` +
+        `Call registerDefinition() after restart before querying ready stages.`
+      );
     }
 
     const completedIds = new Set(
@@ -294,17 +310,26 @@ export class RunController {
     const runningStages = stages.filter((s) => s.status === "running");
 
     for (const stage of runningStages) {
-      // Re-register the timer using the full configured timeout.
-      // (Remaining-time tracking is a future enhancement; this is safe because
-      //  a slightly generous deadline is better than a missed one after restart.)
-      this.timeoutManager.startTimer(
-        runId,
-        stage.stageId,
-        stage.timeout,
-        (timedOutRunId, timedOutStageId) => {
-          void this.handleTimeout(timedOutRunId, timedOutStageId);
-        }
-      );
+      const totalMs = TimeoutManager.parseDuration(stage.timeout);
+      const elapsedMs = stage.startedAt
+        ? Date.now() - new Date(stage.startedAt).getTime()
+        : 0;
+      const remainingMs = totalMs - elapsedMs;
+
+      if (remainingMs <= 0) {
+        // Already past deadline — fire timeout immediately
+        this.handleTimeout(runId, stage.stageId);
+      } else {
+        const remainingSec = Math.ceil(remainingMs / 1000);
+        this.timeoutManager.startTimer(
+          runId,
+          stage.stageId,
+          `${remainingSec}s`,
+          (timedOutRunId, timedOutStageId) => {
+            void this.handleTimeout(timedOutRunId, timedOutStageId);
+          }
+        );
+      }
     }
   }
 
@@ -357,10 +382,11 @@ export class RunController {
         this.persistence.updateStage(runId, stageId, {
           status: "cancelled",
           finishedAt: now,
-          error: `Stage timed out after ${stage.timeout}`,
+          resultSummary: `[cancelled] Stage timed out after ${stage.timeout}`,
         });
         this.removeFromCurrentStages(runId, stageId);
-        // Run continues — do NOT fail the run
+        // Run continues — stage is cancelled but run may complete if all stages are terminal
+        this.checkRunCompletion(runId);
         break;
       }
 

@@ -146,8 +146,7 @@ describe.skipIf(!canRun)("Workflow Engine E2E", () => {
 
     const controller2 = new RunController(beadsDir);
     try {
-      (controller2 as unknown as { definitions: Map<string, WorkflowDefinition> })
-        .definitions.set(runId, workflow);
+      controller2.registerDefinition(runId, workflow);
 
       await controller2.resumeRun(runId);
 

@@ -274,8 +274,7 @@ describe.skipIf(!canRun)("RunController", () => {
 
     try {
       // Inject workflow definition (would normally come from config on startup)
-      (controller2 as unknown as { definitions: Map<string, WorkflowDefinition> })
-        .definitions.set(runId, testWorkflow);
+      controller2.registerDefinition(runId, testWorkflow);
 
       await controller2.resumeRun(runId);
 

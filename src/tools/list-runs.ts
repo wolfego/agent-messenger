@@ -2,16 +2,20 @@ import { z } from "zod";
 import type { RunStatus } from "../workflow-engine/types.js";
 import { WorkflowPersistence } from "../workflow-engine/persistence.js";
 
+const runStatusEnum = z.enum([
+  "pending", "running", "completed", "failed", "cancelled", "timed_out",
+]);
+
 export const listRunsSchema = {
   template_name: z.string().optional().describe("Filter by workflow template name."),
-  status: z.string().optional().describe("Filter by run status."),
+  status: runStatusEnum.optional().describe("Filter by run status."),
 };
 
 export function handleListRuns(persistence: WorkflowPersistence) {
-  return (args: { template_name?: string; status?: string }) => {
+  return (args: { template_name?: string; status?: RunStatus }) => {
     const runs = persistence.listRuns({
       templateName: args.template_name,
-      status: args.status as RunStatus | undefined,
+      status: args.status,
     });
 
     if (runs.length === 0) {
