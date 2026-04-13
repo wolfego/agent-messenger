@@ -200,6 +200,16 @@ server.tool(
   handleWorkflowStatus(config)
 );
 
+// ---------------------------------------------------------------------------
+// Experimental: Workflow Engine (DAG-based run controller)
+// Gated behind --experimental-workflows flag.
+// See PR #37 and docs/plans/2026-04-09-workflow-engine-storage-recommendation.md
+// Tools: start_workflow, run_status, cancel_run, list_runs
+// ---------------------------------------------------------------------------
+if (config.experimentalWorkflows) {
+  process.stderr.write("  experimental workflows enabled\n");
+}
+
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
