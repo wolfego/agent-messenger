@@ -2,7 +2,8 @@ import { resolve, dirname, join } from "node:path";
 import { existsSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 
-export type AgentEnv = "cursor" | "term" | "ext" | "unknown";
+/** Known environments. Any string is accepted via --env for forward compatibility. */
+export type AgentEnv = "cursor" | "codex" | "windsurf" | "aider" | "term" | "ext" | "unknown" | (string & {});
 
 export interface Config {
   baseId: string;
@@ -19,6 +20,12 @@ function detectEnv(): AgentEnv {
 
   // Cursor's own agent (Composer/Agent mode) sets CURSOR_AGENT=1
   if (env["CURSOR_AGENT"] === "1") return "cursor";
+
+  // Windsurf (Codeium) sets WINDSURF=1 or has its own env marker
+  if (env["WINDSURF"] === "1" || env["CODEIUM_AGENT"] === "1") return "windsurf";
+
+  // Codex CLI sets CODEX_CLI=1 when spawning subprocesses
+  if (env["CODEX_CLI"] === "1") return "codex";
 
   // VS Code extension host (Claude Code tab in Cursor/VS Code)
   // Has VSCODE_PID and extension-host in process title, but no CURSOR_AGENT
