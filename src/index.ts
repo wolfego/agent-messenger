@@ -25,9 +25,17 @@ import { queryBeadsSchema, handleQueryBeads } from "./tools/query-beads.js";
 import { scaffoldWorkflowSchema, handleScaffoldWorkflow } from "./tools/scaffold-workflow.js";
 import { workflowCheckpointSchema, handleWorkflowCheckpoint } from "./tools/workflow-checkpoint.js";
 import { workflowStatusSchema, handleWorkflowStatus } from "./tools/workflow-status.js";
+import { startWorkflowSchema, handleStartWorkflow } from "./tools/start-workflow.js";
+import { runStatusSchema, handleRunStatus } from "./tools/run-status.js";
+import { cancelRunSchema, handleCancelRun } from "./tools/cancel-run.js";
+import { listRunsSchema, handleListRuns } from "./tools/list-runs.js";
+import { RunController } from "./workflow-engine/run-controller.js";
+import { WorkflowPersistence } from "./workflow-engine/persistence.js";
 import { cleanStalePresence, registerPresence, deregisterPresence } from "./beads.js";
 
 const config = parseConfig();
+const wfController = config.beadsDir ? new RunController(config.beadsDir) : null;
+const wfPersistence = config.beadsDir ? new WorkflowPersistence(config.beadsDir) : null;
 
 const server = new McpServer(
   { name: "agent-messenger", version: "0.2.0" },
@@ -200,6 +208,13 @@ server.tool(
   handleWorkflowStatus(config)
 );
 
+if (wfController && wfPersistence) {
+  server.tool("start_workflow", "Start a workflow run (e.g. parallel brainstorm)", startWorkflowSchema, handleStartWorkflow(config, wfController));
+  server.tool("run_status", "Check status of a workflow run", runStatusSchema, handleRunStatus(wfController));
+  server.tool("cancel_run", "Cancel a running workflow", cancelRunSchema, handleCancelRun(wfController));
+  server.tool("list_runs", "List workflow runs with optional filters", listRunsSchema, handleListRuns(wfPersistence));
+}
+
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
@@ -221,8 +236,8 @@ async function main() {
       }
     }, 100);
 
-    process.on("SIGINT", () => { deregisterPresence(config); process.exit(0); });
-    process.on("SIGTERM", () => { deregisterPresence(config); process.exit(0); });
+    process.on("SIGINT", () => { wfController?.dispose(); deregisterPresence(config); process.exit(0); });
+    process.on("SIGTERM", () => { wfController?.dispose(); deregisterPresence(config); process.exit(0); });
     process.on("exit", () => { deregisterPresence(config); });
   }
 }
