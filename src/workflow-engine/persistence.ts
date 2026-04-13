@@ -177,7 +177,7 @@ export class WorkflowPersistence {
     bdExec(this.beadsDir, [
       "update", chore.id,
       "--description", JSON.stringify(merged),
-      "--labels", existingLabels.join(","),
+      "--set-labels", existingLabels.join(","),
     ]);
   }
 
@@ -315,7 +315,7 @@ export class WorkflowPersistence {
     bdExec(this.beadsDir, [
       "update", chore.id,
       "--description", JSON.stringify(merged),
-      "--labels", existingLabels.join(","),
+      "--set-labels", existingLabels.join(","),
     ]);
   }
 
