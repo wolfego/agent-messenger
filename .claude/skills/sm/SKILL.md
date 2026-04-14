@@ -4,4 +4,4 @@ description: Send a message to another agent via agent-messenger. Use when the u
 disable-model-invocation: true
 ---
 
-Send a message to another agent using the `send_message` MCP tool. Ask the user who to send to (default: "cursor-opus") and what the message should contain. Include a clear subject, the action the recipient should take, and any relevant context_files.
+Send a message to another agent using the `send_message` MCP tool. Ask the user who to send to (default: "cursor") and what the message should contain. Include a clear subject, the action the recipient should take, and any relevant context_files.

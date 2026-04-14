@@ -16,7 +16,7 @@ interface InitOptions {
 
 function parseArgs(args: string[]): InitOptions {
   const opts: InitOptions = {
-    cursorId: "cursor-opus",
+    cursorId: "cursor",
     ccId: "claude-code",
     dryRun: false,
     skipBeads: false,
@@ -213,7 +213,7 @@ If the user says something like "set channel to design-review" or "join channel 
 
 ## Identity
 
-Each agent gets a unique session ID on startup (e.g. \`cursor-opus-a3f2\`). The base ID (\`cursor-opus\`) is shared across instances — messages to the base ID reach all of them. Use \`set_identity\` to pick a memorable name (e.g. \`cursor-design\`).
+Each agent gets a unique session ID on startup (e.g. \`cursor-a3f2\`). The base ID (\`cursor\`) is shared across instances — messages to the base ID reach all of them. Use \`set_identity\` to pick a memorable name (e.g. \`cursor-design\`).
 
 Use \`whoami\` to see your current identity, base ID, and channel. You do not need to self-identify in message bodies — the \`from\` label is set automatically.
 `;
@@ -302,7 +302,7 @@ Report raw findings, not interpretations. If blocked (need access, can't reprodu
   {
     name: "sm",
     description: 'Send a message to another agent via agent-messenger. Use when the user says "send message", "#sm", or wants to communicate with Cursor or another agent.',
-    body: 'Send a message to another agent using the `send_message` MCP tool. Ask the user who to send to (default: "cursor-opus") and what the message should contain. Include a clear subject, the action the recipient should take, and any relevant context_files.',
+    body: 'Send a message to another agent using the `send_message` MCP tool. Ask the user who to send to (default: "cursor") and what the message should contain. Include a clear subject, the action the recipient should take, and any relevant context_files.',
   },
   {
     name: "ch",
