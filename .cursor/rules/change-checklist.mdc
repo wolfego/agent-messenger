@@ -1,0 +1,70 @@
+---
+description: Checklist of all locations to update when changing features, shortcuts, defaults, or identity
+globs:
+alwaysApply: true
+---
+
+# Change Checklist
+
+agent-messenger has features, shortcuts, defaults, and identity examples duplicated across many files. When changing ANY of the following, you MUST update ALL listed locations or the codebase becomes inconsistent.
+
+## Shortcuts / Commands (#help, /am)
+
+If you add, rename, or remove a shortcut:
+
+1. `README.md` — Shortcuts table
+2. `docs/setup-guide.md` — Shortcuts table
+3. `.cursor/rules/agent-messenger.mdc` — Shortcuts list (Cursor `#` commands)
+4. `src/cli/init.ts` — Embedded `CURSOR_RULE` string AND the matching `SKILLS` entry
+5. `.claude/skills/<name>/SKILL.md` — Live CC skill file (if it exists in this repo's working copy)
+
+## Identity / Agent Defaults
+
+If you change default agent IDs, identity examples, or session ID formats:
+
+1. `README.md` — Identity & Multi-Agent section, diagram
+2. `docs/setup-guide.md` — Identity section, init options table
+3. `docs/development.md` — Manual MCP Configuration examples, --env docs
+4. `.cursor/rules/agent-messenger.mdc` — Identity section
+5. `src/cli/init.ts` — `parseArgs` defaults, `CURSOR_RULE` identity section, relevant `SKILLS` entries (especially `/sm`)
+6. `src/cli/index.ts` — CLI help text (init options)
+7. `.claude/skills/sm/SKILL.md` — Default send target
+8. Tests — `tests/cli.test.ts` (checks help output defaults)
+
+## Supported Agents / Environments
+
+If you add or change supported agent environments (--env values, auto-detection):
+
+1. `src/config.ts` — `AgentEnv` type, `detectEnv()` function
+2. `README.md` — Opening line, diagram, Identity section
+3. `docs/setup-guide.md` — Opening line, identity section
+4. `docs/development.md` — `--env` flag documentation
+5. `src/tools/send-message.ts` — Schema description (agent examples)
+
+## Version Bumps
+
+If you change the version number:
+
+1. `package.json` — `version` field
+2. `src/index.ts` — McpServer version string
+
+## Workflow Tools
+
+If you add, rename, or remove workflow tools:
+
+1. `src/index.ts` — Tool registration
+2. `docs/development.md` — MCP Tool Parameters section
+3. `README.md` — Shortcuts table (if it has a shortcut)
+4. `docs/setup-guide.md` — Shortcuts table, workflow section
+5. `.cursor/rules/agent-messenger.mdc` — Shortcuts list
+6. `src/cli/init.ts` — `CURSOR_RULE` shortcuts, `SKILLS` entries
+
+## How to Use This
+
+Before marking any feature/docs PR as complete, grep for the old values across the full codebase:
+
+```bash
+rg "old-value" --type ts --type md
+```
+
+If matches remain in any of the listed locations, update them.
