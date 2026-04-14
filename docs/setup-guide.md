@@ -1,6 +1,6 @@
 # Agent Messenger — Usage Guide
 
-MCP server that lets Cursor and Claude Code agents message each other within a project.
+MCP server that lets AI coding agents (Cursor, Claude Code, Codex, Windsurf, Aider, and any MCP-capable tool) message each other within a project.
 
 ## Install
 
@@ -36,7 +36,7 @@ Your Beads data (messages, tasks, history) is never affected by upgrades. If you
 
 | Flag               | Default        | Description                                |
 | ------------------ | -------------- | ------------------------------------------ |
-| `--cursor-id <id>` | `cursor-opus`  | Cursor agent ID                            |
+| `--cursor-id <id>` | `cursor`       | Cursor agent ID                            |
 | `--cc-id <id>`     | `claude-code`  | Claude Code agent ID                       |
 | `--dry-run`        |                | Preview changes without writing   |
 | `--skip-beads`     |                | Skip Beads/Dolt setup             |
@@ -74,11 +74,14 @@ Both agents have shortcut commands — `#` prefix in Cursor, `/` prefix in Claud
 
 Each agent gets a unique session ID on startup (e.g. `claude-code-ext-a3f2`). The **base ID** (`claude-code`) is shared across all instances of the same type — messages to the base ID reach every instance.
 
+The server auto-detects the agent environment (Cursor, Codex, Windsurf) via environment variables, or you can pass any string with `--env <name>` for forward compatibility.
+
 Use `#id` / `/id` to pick a memorable name:
 
 ```
 [Cursor]       #id cursor-design
 [CC terminal]  /id cc-auth
+[Codex]        set_identity codex-api
 ```
 
 This makes `#la` / `/la` more useful — you see `cc-auth` instead of `claude-code-ext-b7`. Set identity early in each session.

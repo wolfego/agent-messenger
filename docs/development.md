@@ -32,7 +32,7 @@ If you need to configure MCP servers without `agent-messenger init`:
       "command": "node",
       "args": [
         "/path/to/agent-messenger/dist/index.js",
-        "--agent-id", "cursor-opus",
+        "--agent-id", "cursor",
         "--beads-dir", "/path/to/your-project/.beads",
         "--env", "cursor"
       ],
@@ -62,7 +62,7 @@ If you need to configure MCP servers without `agent-messenger init`:
 
 **Critical:** `--beads-dir` must point to the `.beads` directory, not the project root.
 
-The `--env` flag tells the server which environment it's running in (`cursor` or omitted for CC). This affects session ID generation (e.g. `cursor-opus-a3f2` vs `claude-code-ext-b7`).
+The `--env` flag tells the server which environment it's running in. Known values: `cursor`, `codex`, `windsurf`, `aider`, `term`, `ext`. Any string is accepted for forward compatibility. When omitted, the server auto-detects the environment via environment variables (`CURSOR_AGENT`, `CODEX_CLI`, `WINDSURF`, `CODEIUM_AGENT`, `VSCODE_PID`). This affects session ID generation (e.g. `cursor-a3f2` vs `claude-code-ext-b7` vs `codex-c1d4`).
 
 ## Message Routing Internals
 
