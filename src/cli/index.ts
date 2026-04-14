@@ -31,7 +31,7 @@ Options for log:
   -t, --thread <id>   Show a specific conversation thread
 
 Options for init:
-  --cursor-id <id>    Cursor agent ID (default: cursor-opus)
+  --cursor-id <id>    Cursor agent ID (default: cursor)
   --cc-id <id>        Claude Code agent ID (default: claude-code)
   --dry-run           Show what would be created without writing
   --skip-beads        Skip Beads/Dolt installation (use if already set up)

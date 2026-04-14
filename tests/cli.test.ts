@@ -57,7 +57,7 @@ describe.skipIf(!cliBuilt)("CLI: init --dry-run", () => {
     });
 
     // Should reference both agent types
-    expect(output).toContain("cursor-opus");
+    expect(output).toContain("cursor");
     expect(output).toContain("claude-code");
   });
 

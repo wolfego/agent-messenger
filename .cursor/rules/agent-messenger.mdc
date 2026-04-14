@@ -56,6 +56,6 @@ If the user says something like "set channel to design-review" or "join channel 
 
 ## Identity
 
-Each agent gets a unique session ID on startup (e.g. `cursor-opus-a3f2`). The base ID (`cursor-opus`) is shared across all instances of the same agent type — messages addressed to the base ID are received by all instances. Use `set_identity` to give yourself a memorable name (e.g. `cursor-design`).
+Each agent gets a unique session ID on startup (e.g. `cursor-a3f2`). The base ID (`cursor`) is shared across all instances of the same agent type — messages addressed to the base ID are received by all instances. Use `set_identity` to give yourself a memorable name (e.g. `cursor-design`).
 
 Use `whoami` to see your current identity, base ID, and channel. You do not need to self-identify in message bodies — the `from` label is set automatically.
