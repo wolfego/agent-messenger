@@ -3,7 +3,7 @@
 [![CI](https://github.com/wolfego/agent-messenger/actions/workflows/ci.yml/badge.svg)](https://github.com/wolfego/agent-messenger/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-MCP server that unifies agent-to-agent messaging and task management for Cursor and Claude Code (in a Cursor terminal or tab). Agents send messages, reply in threads, create and track tasks, manage dependencies, and follow structured workflows — all backed by [Beads](https://github.com/steveyegge/beads) for persistent, version-controlled storage that survives across sessions.
+MCP server that unifies agent-to-agent messaging and task management for AI coding agents — Cursor, Claude Code, Codex, Windsurf, Aider, and any MCP-capable tool. Agents send messages, reply in threads, create and track tasks, manage dependencies, and follow structured workflows — all backed by [Beads](https://github.com/steveyegge/beads) for persistent, version-controlled storage that survives across sessions.
 
 ## Quick Start
 
@@ -34,21 +34,21 @@ agent-messenger doctor
 
 ## How It Works
 
-Both agents connect to the same MCP server with different identities. Messages and tasks are stored in a Beads (Dolt) database — messages route via labels (`to:`, `from:`, `unread`), tasks track work with priorities, dependencies, and status. Threading uses `replies_to` graph links. Channels isolate conversations when multiple agent pairs are active.
+All agents connect to the same MCP server with different identities. The server auto-detects the agent environment (Cursor, Codex, Windsurf, etc.) or accepts any string via `--env`. Messages and tasks are stored in a Beads (Dolt) database — messages route via labels (`to:`, `from:`, `unread`), tasks track work with priorities, dependencies, and status. Threading uses `replies_to` graph links. Channels isolate conversations when multiple agent pairs are active.
 
 ```
 ┌──────────────┐         ┌─────────────────────┐         ┌──────────────┐
 │    Cursor     │◄─stdio─►│  agent-messenger MCP │◄─stdio─►│  Claude Code  │
 │  one shared   │         │                     │         │  cc-design    │
-│  connection   │         │  send_message       │         │ /cm /sm /id   │
-│ #cm #sm #id   │         │  check_inbox        │         └──────────────┘
-└──────────────┘         │  reply / get_thread  │
-                          │  set_channel / ...   │         ┌──────────────┐
-                          │                     │◄─stdio─►│  Claude Code  │
-                          │  ┌───────────────┐  │         │  cc-impl      │
-                          │  │ Beads (bd CLI) │  │         │ /cm /sm /id   │
-                          │  │ .beads/ Dolt DB│  │         └──────────────┘
-                          │  └───────────────┘  │              ...
+│  connection   │         │  send_message       │         └──────────────┘
+│ #cm #sm #id   │         │  check_inbox        │
+└──────────────┘         │  reply / get_thread  │         ┌──────────────┐
+                          │  set_channel / ...   │◄─stdio─►│  Codex / etc  │
+                          │                     │         │  codex-impl   │
+                          │  ┌───────────────┐  │         └──────────────┘
+                          │  │ Beads (bd CLI) │  │
+                          │  │ .beads/ Dolt DB│  │              ...
+                          │  └───────────────┘  │
                           └─────────────────────┘
 ```
 
@@ -104,13 +104,13 @@ Unlike messages (ephemeral conversations), tasks are the persistent record of wh
 
 ## Identity & Multi-Agent
 
-**Cursor** shares a single MCP connection across all agent tabs (Opus, Codex, etc.) in a workspace. All Cursor agents appear as one identity — when Claude Code messages "cursor", every Cursor agent receives it.
+**Cursor** shares a single MCP connection across all agent tabs (Opus, Codex, etc.) in a workspace. All Cursor agents appear as one identity — when another agent messages "cursor", every Cursor agent receives it.
 
 **Claude Code** gets a separate MCP connection per instance (whether in a terminal or a tab), so each has its own identity (e.g. `claude-code-a3f2`, `claude-code-b1c9`). Cursor can address them individually.
 
-This means: Cursor agents can talk to multiple CC instances independently, but CC agents messaging Cursor are messaging all Cursor agents at once.
+**Other agents** (Codex, Windsurf, Aider) are auto-detected via environment variables when possible. Any MCP-capable tool can connect by passing `--env <name>` — the server accepts any string for forward compatibility.
 
-Use `set_identity` to pick memorable names — `#id cursor-lead` in Cursor, `/id cc-design` and `/id cc-impl` in each CC instance. Use channels (`#ch` / `/ch`) to isolate conversations when multiple CC instances are active.
+Use `set_identity` to pick memorable names — `#id cursor-lead` in Cursor, `/id cc-design` and `/id cc-impl` in each CC instance. Use channels (`#ch` / `/ch`) to isolate conversations when multiple agents are active.
 
 ## CLI Commands
 

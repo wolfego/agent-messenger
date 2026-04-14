@@ -13,7 +13,6 @@ export interface Config {
   channel?: string;
   projectRoot?: string;
   env: AgentEnv;
-  experimentalWorkflows?: boolean;
 }
 
 function detectEnv(): AgentEnv {
@@ -73,7 +72,6 @@ export function parseConfig(): Config {
   let beadsDir: string | undefined;
   let channel: string | undefined;
   let noAutoId = false;
-  let experimentalWorkflows = false;
 
   let explicitEnv: AgentEnv | undefined;
 
@@ -92,8 +90,6 @@ export function parseConfig(): Config {
       i++;
     } else if (args[i] === "--no-auto-id") {
       noAutoId = true;
-    } else if (args[i] === "--experimental-workflows") {
-      experimentalWorkflows = true;
     }
   }
 
@@ -120,5 +116,5 @@ export function parseConfig(): Config {
   const agentId = `${baseId}${suffix}`;
   const agentName = formatName(agentId);
 
-  return { baseId, agentId, agentName, beadsDir, channel, projectRoot, env, experimentalWorkflows: experimentalWorkflows || undefined };
+  return { baseId, agentId, agentName, beadsDir, channel, projectRoot, env };
 }
