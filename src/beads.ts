@@ -396,6 +396,10 @@ export function listLinkedMessages(config: Config, taskId: string): BeadsMessage
   }
 }
 
+export function appendTaskNote(config: Config, taskId: string, note: string): void {
+  bdExec(config, ["update", taskId, "--append-notes", note]);
+}
+
 // ---------------------------------------------------------------------------
 // Presence
 // ---------------------------------------------------------------------------

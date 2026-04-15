@@ -1,35 +1,39 @@
 import { z } from "zod";
 import type { Config } from "../config.js";
-import { checkInbox, markRead } from "../beads.js";
+import type { MessageStore } from "../message-store.js";
 
 export const checkInboxSchema = {
   include_read: z.boolean().optional().describe("Include already-read messages (default: false)"),
   auto_mark_read: z.boolean().optional().describe("Automatically mark fetched messages as read (default: true)"),
 };
 
-export function handleCheckInbox(config: Config) {
+export function handleCheckInbox(config: Config, store?: MessageStore) {
   return (args: { include_read?: boolean; auto_mark_read?: boolean }) => {
+    if (!store) {
+      throw new Error("Message store not initialized — is .am/ directory accessible?");
+    }
+
     const autoMark = args.auto_mark_read !== false;
-    const messages = checkInbox(config, args.include_read ?? false);
+    const messages = store.inbox(config.agentId, config.baseId, {
+      channel: config.channel,
+      includeRead: args.include_read,
+    });
+
     const formatted = messages.map((m) => ({
       id: m.id,
-      from: m.labels?.find((l) => l.startsWith("from:"))?.slice(5) ?? "unknown",
-      subject: m.title,
-      body: m.description ?? "",
-      context_files: extractContextFiles(m.description),
-      action: m.labels?.find((l) => l.startsWith("action:"))?.slice(7),
-      priority: m.priority === 0 ? "urgent" : "normal",
-      timestamp: m.created_at,
+      from: m.from,
+      subject: m.subject,
+      body: m.body,
+      context_files: m.context_files.length > 0 ? m.context_files : extractContextFiles(m.body),
+      action: m.action,
+      priority: m.priority,
+      timestamp: m.timestamp,
     }));
 
     if (autoMark) {
-      const unread = messages.filter((m) => m.labels?.includes("unread"));
-      for (const m of unread) {
-        try {
-          markRead(config, m.id);
-        } catch {
-          // best-effort — don't fail the inbox check if mark_read errors
-        }
+      const unreadIds = messages.filter((m) => m.unread).map((m) => m.id);
+      if (unreadIds.length > 0) {
+        store.markAllRead(unreadIds);
       }
     }
 
@@ -47,9 +51,8 @@ export function handleCheckInbox(config: Config) {
   };
 }
 
-function extractContextFiles(description?: string): string[] {
-  if (!description) return [];
-  const match = description.match(/Context files:\n((?:- .+\n?)+)/);
+function extractContextFiles(body: string): string[] {
+  const match = body.match(/Context files:\n((?:- .+\n?)+)/);
   if (!match?.[1]) return [];
   return match[1]
     .split("\n")

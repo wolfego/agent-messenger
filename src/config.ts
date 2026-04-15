@@ -12,6 +12,7 @@ export interface Config {
   beadsDir?: string;
   channel?: string;
   projectRoot?: string;
+  messageDir?: string;
   env: AgentEnv;
 }
 
@@ -116,5 +117,7 @@ export function parseConfig(): Config {
   const agentId = `${baseId}${suffix}`;
   const agentName = formatName(agentId);
 
-  return { baseId, agentId, agentName, beadsDir, channel, projectRoot, env };
+  const messageDir = projectRoot ? join(projectRoot, ".am") : undefined;
+
+  return { baseId, agentId, agentName, beadsDir, channel, projectRoot, messageDir, env };
 }

@@ -1,14 +1,18 @@
 import { z } from "zod";
 import type { Config } from "../config.js";
-import { markRead } from "../beads.js";
+import type { MessageStore } from "../message-store.js";
 
 export const markReadSchema = {
   message_id: z.string().describe("The message ID to mark as read"),
 };
 
-export function handleMarkRead(config: Config) {
+export function handleMarkRead(_config: Config, store?: MessageStore) {
   return (args: { message_id: string }) => {
-    markRead(config, args.message_id);
+    if (!store) {
+      throw new Error("Message store not initialized — is .am/ directory accessible?");
+    }
+
+    store.markRead(args.message_id);
     return {
       content: [
         {

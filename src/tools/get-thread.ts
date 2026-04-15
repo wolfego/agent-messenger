@@ -1,20 +1,24 @@
 import { z } from "zod";
 import type { Config } from "../config.js";
-import { getThread } from "../beads.js";
+import type { MessageStore } from "../message-store.js";
 
 export const getThreadSchema = {
   message_id: z.string().describe("Any message ID in the thread"),
 };
 
-export function handleGetThread(config: Config) {
+export function handleGetThread(_config: Config, store?: MessageStore) {
   return (args: { message_id: string }) => {
-    const messages = getThread(config, args.message_id);
+    if (!store) {
+      throw new Error("Message store not initialized — is .am/ directory accessible?");
+    }
+
+    const messages = store.thread(args.message_id);
     const formatted = messages.map((m) => ({
       id: m.id,
-      from: m.labels?.find((l) => l.startsWith("from:"))?.slice(5) ?? m.created_by ?? "unknown",
-      subject: m.title,
-      body: m.description ?? "",
-      timestamp: m.created_at,
+      from: m.from,
+      subject: m.subject,
+      body: m.body,
+      timestamp: m.timestamp,
     }));
     return {
       content: [

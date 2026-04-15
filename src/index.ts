@@ -26,8 +26,14 @@ import { scaffoldWorkflowSchema, handleScaffoldWorkflow } from "./tools/scaffold
 import { workflowCheckpointSchema, handleWorkflowCheckpoint } from "./tools/workflow-checkpoint.js";
 import { workflowStatusSchema, handleWorkflowStatus } from "./tools/workflow-status.js";
 import { cleanStalePresence, registerPresence, deregisterPresence } from "./beads.js";
+import { MessageStore } from "./message-store.js";
 
 const config = parseConfig();
+
+let messageStore: MessageStore | undefined;
+if (config.messageDir) {
+  messageStore = new MessageStore(config.messageDir);
+}
 
 const server = new McpServer(
   { name: "agent-messenger", version: "0.2.1" },
@@ -41,42 +47,42 @@ server.tool(
   "send_message",
   "Send a message to another agent",
   sendMessageSchema,
-  handleSendMessage(config)
+  handleSendMessage(config, messageStore)
 );
 
 server.tool(
   "check_inbox",
   "Check for messages addressed to this agent",
   checkInboxSchema,
-  handleCheckInbox(config)
+  handleCheckInbox(config, messageStore)
 );
 
 server.tool(
   "reply",
   "Reply to a specific message (auto-threads)",
   replySchema,
-  handleReply(config)
+  handleReply(config, messageStore)
 );
 
 server.tool(
   "get_thread",
   "Get a full conversation thread by any message ID in it",
   getThreadSchema,
-  handleGetThread(config)
+  handleGetThread(config, messageStore)
 );
 
 server.tool(
   "list_conversations",
   "List all conversations this agent is part of",
   listConversationsSchema,
-  handleListConversations(config)
+  handleListConversations(config, messageStore)
 );
 
 server.tool(
   "mark_read",
   "Mark a message as read",
   markReadSchema,
-  handleMarkRead(config)
+  handleMarkRead(config, messageStore)
 );
 
 server.tool("whoami", "Get this agent's identity and current channel", handleWhoami(config));
@@ -176,7 +182,7 @@ server.tool(
   "query_beads",
   "Query the Beads database. Use type 'message' to browse message history, or any other type for tasks/epics/chores. Convenience params (from, to, channel) translate to label filters automatically.",
   queryBeadsSchema,
-  handleQueryBeads(config)
+  handleQueryBeads(config, messageStore)
 );
 
 server.tool(

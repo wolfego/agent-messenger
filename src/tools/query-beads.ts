@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { Config } from "../config.js";
+import type { MessageStore } from "../message-store.js";
 import { queryBeads } from "../beads.js";
 
 export const queryBeadsSchema = {
@@ -14,7 +15,7 @@ export const queryBeadsSchema = {
   reverse: z.boolean().optional().describe("Reverse sort order — newest first (default: true)"),
 };
 
-export function handleQueryBeads(config: Config) {
+export function handleQueryBeads(config: Config, store?: MessageStore) {
   return (args: {
     type: string;
     from?: string;
@@ -26,49 +27,107 @@ export function handleQueryBeads(config: Config) {
     sort?: string;
     reverse?: boolean;
   }) => {
-    const labels: string[] = [...(args.labels ?? [])];
-    if (args.from) labels.push(`from:${args.from}`);
-    if (args.to) labels.push(`to:${args.to}`);
-    if (args.channel) labels.push(`channel:${args.channel}`);
+    if (args.type === "message" && store) {
+      return handleMessageQuery(store, args);
+    }
+    return handleBeadsQuery(config, args);
+  };
+}
 
-    const results = queryBeads(config, {
-      type: args.type,
-      labels: labels.length > 0 ? labels : undefined,
-      status: args.status ?? "open",
-      limit: args.limit ?? 20,
-      sort: args.sort ?? "created",
-      reverse: args.reverse !== false,
-    });
+function handleMessageQuery(store: MessageStore, args: {
+  from?: string;
+  to?: string;
+  channel?: string;
+  limit?: number;
+}) {
+  const results = store.query({
+    from: args.from,
+    to: args.to,
+    channel: args.channel,
+    limit: args.limit ?? 20,
+  });
 
-    const formatted = results.map((r) => ({
-      id: r.id,
-      title: r.title,
-      type: r.issue_type,
-      status: r.status,
-      priority: r.priority,
-      from: r.labels?.find((l) => l.startsWith("from:"))?.slice(5),
-      to: r.labels?.find((l) => l.startsWith("to:"))?.slice(3),
-      channel: r.labels?.find((l) => l.startsWith("channel:"))?.slice(8),
-      labels: r.labels?.filter((l) =>
-        !l.startsWith("from:") && !l.startsWith("to:") && !l.startsWith("channel:")
-      ),
-      body: r.description ? truncate(r.description, 500) : undefined,
-      created_at: r.created_at,
-      updated_at: r.updated_at,
-    }));
+  const formatted = results.map((r) => ({
+    id: r.id,
+    title: r.subject,
+    type: "message",
+    status: r.unread ? "unread" : "read",
+    priority: r.priority === "urgent" ? 0 : 2,
+    from: r.from,
+    to: r.to,
+    channel: r.channel,
+    labels: [
+      r.action ? `action:${r.action}` : null,
+      r.task_id ? `refs:${r.task_id}` : null,
+    ].filter(Boolean),
+    body: undefined,
+    created_at: r.timestamp,
+    updated_at: r.timestamp,
+  }));
 
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: JSON.stringify({ count: formatted.length, results: formatted }, null, 2),
-        },
-      ],
-    };
+  return {
+    content: [
+      {
+        type: "text" as const,
+        text: JSON.stringify({ count: formatted.length, results: formatted }, null, 2),
+      },
+    ],
   };
 }
 
 function truncate(s: string, max: number): string {
   if (s.length <= max) return s;
   return s.slice(0, max) + "…";
+}
+
+function handleBeadsQuery(config: Config, args: {
+  type: string;
+  from?: string;
+  to?: string;
+  channel?: string;
+  labels?: string[];
+  status?: string;
+  limit?: number;
+  sort?: string;
+  reverse?: boolean;
+}) {
+  const labels: string[] = [...(args.labels ?? [])];
+  if (args.from) labels.push(`from:${args.from}`);
+  if (args.to) labels.push(`to:${args.to}`);
+  if (args.channel) labels.push(`channel:${args.channel}`);
+
+  const results = queryBeads(config, {
+    type: args.type,
+    labels: labels.length > 0 ? labels : undefined,
+    status: args.status ?? "open",
+    limit: args.limit ?? 20,
+    sort: args.sort ?? "created",
+    reverse: args.reverse !== false,
+  });
+
+  const formatted = results.map((r) => ({
+    id: r.id,
+    title: r.title,
+    type: r.issue_type,
+    status: r.status,
+    priority: r.priority,
+    from: r.labels?.find((l) => l.startsWith("from:"))?.slice(5),
+    to: r.labels?.find((l) => l.startsWith("to:"))?.slice(3),
+    channel: r.labels?.find((l) => l.startsWith("channel:"))?.slice(8),
+    labels: r.labels?.filter((l) =>
+      !l.startsWith("from:") && !l.startsWith("to:") && !l.startsWith("channel:")
+    ),
+    body: r.description ? truncate(r.description, 500) : undefined,
+    created_at: r.created_at,
+    updated_at: r.updated_at,
+  }));
+
+  return {
+    content: [
+      {
+        type: "text" as const,
+        text: JSON.stringify({ count: formatted.length, results: formatted }, null, 2),
+      },
+    ],
+  };
 }

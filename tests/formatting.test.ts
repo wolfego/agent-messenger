@@ -1,6 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { mkdtempSync, rmSync } from "node:fs";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
 import type { Config } from "../src/config.js";
 import { handleSetChannel } from "../src/tools/set-channel.js";
+import { MessageStore } from "../src/message-store.js";
 
 function makeConfig(overrides: Partial<Config> = {}): Config {
   return {
@@ -261,19 +265,25 @@ describe("message formatting", () => {
   });
 
   describe("extractContextFiles (via check_inbox handler)", () => {
-    it("extracts context files from message description", async () => {
-      // Test the extractContextFiles function indirectly through check_inbox handler
-      mockExec.mockReturnValue(JSON.stringify([{
-        id: "msg-010",
-        title: "Test",
-        description: "Body text\n\n---\nContext files:\n- src/config.ts\n- src/beads.ts\n",
-        status: "open",
-        priority: 2,
-        issue_type: "message",
-        created_at: "2026-04-08T00:00:00Z",
-        updated_at: "2026-04-08T00:00:00Z",
-        labels: ["to:claude-code", "from:cursor-opus", "unread"],
-      }]));
+    let storeTmpDir: string;
+    let store: MessageStore;
+
+    beforeEach(() => {
+      storeTmpDir = mkdtempSync(join(tmpdir(), "am-fmt-test-"));
+      store = new MessageStore(storeTmpDir);
+    });
+
+    afterEach(() => {
+      rmSync(storeTmpDir, { recursive: true, force: true });
+    });
+
+    it("extracts context files from message body", async () => {
+      store.create({
+        to: "claude-code",
+        from: "cursor-opus",
+        subject: "Test",
+        body: "Body text\n\n---\nContext files:\n- src/config.ts\n- src/beads.ts\n",
+      });
 
       const { handleCheckInbox } = await import("../src/tools/check-inbox.js");
       const config = makeConfig({
@@ -281,7 +291,7 @@ describe("message formatting", () => {
         baseId: "claude-code",
       });
 
-      const handler = handleCheckInbox(config);
+      const handler = handleCheckInbox(config, store);
       const result = handler({ auto_mark_read: false });
       const parsed = JSON.parse(result.content[0]!.text);
 
@@ -292,17 +302,12 @@ describe("message formatting", () => {
     });
 
     it("returns empty array when no context files", async () => {
-      mockExec.mockReturnValue(JSON.stringify([{
-        id: "msg-011",
-        title: "Test",
-        description: "Just a body, no files",
-        status: "open",
-        priority: 2,
-        issue_type: "message",
-        created_at: "2026-04-08T00:00:00Z",
-        updated_at: "2026-04-08T00:00:00Z",
-        labels: ["to:claude-code", "from:cursor-opus", "unread"],
-      }]));
+      store.create({
+        to: "claude-code",
+        from: "cursor-opus",
+        subject: "Test",
+        body: "Just a body, no files",
+      });
 
       const { handleCheckInbox } = await import("../src/tools/check-inbox.js");
       const config = makeConfig({
@@ -310,7 +315,7 @@ describe("message formatting", () => {
         baseId: "claude-code",
       });
 
-      const handler = handleCheckInbox(config);
+      const handler = handleCheckInbox(config, store);
       const result = handler({ auto_mark_read: false });
       const parsed = JSON.parse(result.content[0]!.text);
 

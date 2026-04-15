@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { Config } from "../config.js";
-import { createMessage, listAgents } from "../beads.js";
+import type { MessageStore } from "../message-store.js";
+import { listAgents } from "../beads.js";
 
 export const sendMessageSchema = {
   to: z.string().describe("Target agent ID — use base ID to reach any instance (e.g. 'claude-code', 'codex'), or a specific session ID (e.g. 'cc-design') to target one instance"),
@@ -36,7 +37,7 @@ function buildWorktreeSuggestion(name: string): string {
   ].join("\n");
 }
 
-export function handleSendMessage(config: Config) {
+export function handleSendMessage(config: Config, store?: MessageStore) {
   return (args: {
     to: string;
     subject: string;
@@ -47,19 +48,25 @@ export function handleSendMessage(config: Config) {
     worktree?: string;
     task_id?: string;
   }) => {
+    if (!store) {
+      throw new Error("Message store not initialized — is .am/ directory accessible?");
+    }
+
     let body = args.body;
     if (args.worktree) {
       body += buildWorktreeSuggestion(args.worktree);
     }
 
-    const result = createMessage(config, {
+    const meta = store.create({
       to: args.to,
+      from: config.agentId,
       subject: args.subject,
       body,
-      contextFiles: args.context_files,
+      context_files: args.context_files,
       action: args.action,
       priority: args.priority,
-      taskId: args.task_id,
+      task_id: args.task_id,
+      channel: config.channel,
     });
 
     let warning: string | undefined;
@@ -71,7 +78,7 @@ export function handleSendMessage(config: Config) {
         : `No agent named '${args.to}' is currently online. Message sent anyway — it will be delivered when an agent with that ID checks their inbox.`;
     }
 
-    const response: Record<string, unknown> = { message_id: result.id, status: "sent" };
+    const response: Record<string, unknown> = { message_id: meta.id, status: "sent" };
     if (args.worktree) response["worktree_suggested"] = args.worktree;
     if (args.task_id) response["linked_task"] = args.task_id;
     if (warning) response["warning"] = warning;
