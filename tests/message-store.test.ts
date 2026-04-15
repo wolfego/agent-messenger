@@ -279,8 +279,16 @@ describe("MessageStore", () => {
     });
 
     it("sorts by timestamp descending by default", () => {
-      store.create({ to: "cc", from: "cursor", subject: "First", body: "a" });
-      store.create({ to: "cc", from: "cursor", subject: "Second", body: "b" });
+      const m1 = store.create({ to: "cc", from: "cursor", subject: "First", body: "a" });
+      const m2 = store.create({ to: "cc", from: "cursor", subject: "Second", body: "b" });
+
+      // Ensure distinct timestamps — CI runners can create both in <1ms
+      const index = store.readIndex();
+      const e1 = index.find((e) => e.id === m1.id)!;
+      const e2 = index.find((e) => e.id === m2.id)!;
+      e1.timestamp = "2026-01-01T00:00:00.000Z";
+      e2.timestamp = "2026-01-01T00:00:01.000Z";
+      (store as any).writeIndex(index);
 
       const results = store.query({});
       expect(results[0]!.subject).toBe("Second");
