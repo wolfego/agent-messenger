@@ -3,7 +3,7 @@
 [![CI](https://github.com/wolfego/agent-messenger/actions/workflows/ci.yml/badge.svg)](https://github.com/wolfego/agent-messenger/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-MCP server that unifies agent-to-agent messaging and task management for AI coding agents — Cursor, Claude Code, Codex, Windsurf, Aider, and any MCP-capable tool. Agents send messages, reply in threads, create and track tasks, manage dependencies, and follow structured workflows — all backed by [Beads](https://github.com/steveyegge/beads) for persistent, version-controlled storage that survives across sessions.
+MCP server that unifies agent-to-agent messaging and task management for AI coding agents — Cursor, Claude Code, Codex, Windsurf, Aider, and any MCP-capable tool. Agents send messages, reply in threads, create and track tasks, manage dependencies, and follow structured workflows. Messages use a fast local file store (`.am/`); tasks and project tracking are backed by [Beads](https://github.com/steveyegge/beads) for persistent, version-controlled storage.
 
 ## Quick Start
 
@@ -26,7 +26,7 @@ agent-messenger init
 > ```
 > Restart your terminal after.
 
-The `init` command handles Beads initialization, MCP config generation, Cursor rules, and Claude Code skills. If something doesn't work, run:
+The `init` command handles message store setup (`.am/`), Beads initialization, MCP config generation, Cursor rules, and Claude Code skills. If something doesn't work, run:
 
 ```bash
 agent-messenger doctor
@@ -34,7 +34,7 @@ agent-messenger doctor
 
 ## How It Works
 
-All agents connect to the same MCP server with different identities. The server auto-detects the agent environment (Cursor, Codex, Windsurf, etc.) or accepts any string via `--env`. Messages and tasks are stored in a Beads (Dolt) database — messages route via labels (`to:`, `from:`, `unread`), tasks track work with priorities, dependencies, and status. Threading uses `replies_to` graph links. Channels isolate conversations when multiple agent pairs are active.
+All agents connect to the same MCP server with different identities. The server auto-detects the agent environment (Cursor, Codex, Windsurf, etc.) or accepts any string via `--env`. Messages are stored in a fast local file store (`.am/`) with metadata/body separation for instant reads. Tasks and project tracking use Beads (Dolt) for version-controlled persistence. Threading, channels, and routing work the same across both stores.
 
 ```
 ┌──────────────┐         ┌─────────────────────┐         ┌──────────────┐
@@ -46,8 +46,8 @@ All agents connect to the same MCP server with different identities. The server 
                           │  set_channel / ...   │◄─stdio─►│  Codex / etc  │
                           │                     │         │  codex-impl   │
                           │  ┌───────────────┐  │         └──────────────┘
-                          │  │ Beads (bd CLI) │  │
-                          │  │ .beads/ Dolt DB│  │              ...
+                          │  │  .am/ messages │  │
+                          │  │  .beads/ tasks │  │              ...
                           │  └───────────────┘  │
                           └─────────────────────┘
 ```
@@ -100,7 +100,7 @@ Agents can create, track, and coordinate work — not just talk about it. Tasks 
 
 **Project stats:** `project_stats` gives a health snapshot: open/closed counts, ready work, lead time, and recent activity.
 
-Unlike messages (ephemeral conversations), tasks are the persistent record of what needs to happen, what's in progress, and what's done.
+Messages live in the fast local file store (`.am/`) for low-latency conversations. Tasks are the persistent, version-controlled record in Beads of what needs to happen, what's in progress, and what's done.
 
 ## Identity & Multi-Agent
 

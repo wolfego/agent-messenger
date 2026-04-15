@@ -64,21 +64,50 @@ If you need to configure MCP servers without `agent-messenger init`:
 
 The `--env` flag tells the server which environment it's running in. Known values: `cursor`, `codex`, `windsurf`, `aider`, `term`, `ext`. Any string is accepted for forward compatibility. When omitted, the server auto-detects the environment via environment variables (`CURSOR_AGENT`, `CODEX_CLI`, `WINDSURF`, `CODEIUM_AGENT`, `VSCODE_PID`). This affects session ID generation (e.g. `cursor-a3f2` vs `claude-code-ext-b7` vs `codex-c1d4`).
 
-## Message Routing Internals
+## Message Storage
 
-Messages route via Beads labels on chore records:
+Messages use a fast local file store at `.am/` in the project root. This replaced Beads-backed message storage in v0.2.2 for significantly faster send/receive (~10ms vs ~6s).
+
+### Architecture
+
+```
+.am/
+  index.json         # Message metadata (routing, timestamps, read status)
+  index.lock/        # Directory-based atomic lock for concurrent writes
+  messages/
+    msg-a1b2c3d4.body   # Full message body (one file per message)
+```
+
+**Metadata/body separation:** `index.json` contains only small routing metadata (to, from, subject, channel, read status, timestamps). Full message bodies are stored in separate files and loaded on demand. This keeps inbox checks fast regardless of message size.
+
+**Concurrency:** Writes to `index.json` are protected by a directory-based lock (`mkdirSync` is atomic on all platforms). The lock has a 5-second timeout with automatic stale-lock cleanup.
+
+**Pruning:** `MessageStore.prune()` removes read messages older than a configurable threshold (default 7 days), including their body files.
+
+### Routing
+
+Messages route via metadata fields in `index.json`:
+
+| Field       | Purpose                                            |
+| ----------- | -------------------------------------------------- |
+| `to`        | Addressed to a specific agent or base ID           |
+| `from`      | Sent by this agent                                 |
+| `read`      | Whether the recipient has fetched the message      |
+| `channel`   | Scoped to a channel (optional)                     |
+| `replyTo`   | Parent message ID for threading                    |
+| `taskId`    | Cross-references a Beads task (optional)           |
+
+Routing logic: `check_inbox` scans `index.json` for entries matching `to` (agent ID or base ID), `read: false`, and optionally `channel`. Base ID matching means messages to `cursor` reach all Cursor instances.
+
+### Beads (tasks only)
+
+Beads labels still power presence and task management:
 
 | Label              | Purpose                                            |
 | ------------------ | -------------------------------------------------- |
-| `to:<agent-id>`    | Addressed to a specific agent or base ID           |
-| `from:<agent-id>`  | Sent by this agent                                 |
-| `unread`           | Not yet fetched by the recipient                   |
-| `channel:<name>`   | Scoped to a channel                                |
 | `refs:<task-id>`   | Cross-references a Beads task                      |
 | `kind:presence`    | Marks a record as a presence heartbeat (not a msg) |
 | `agent:<agent-id>` | Tags presence records with the agent's identity    |
-
-Routing logic: `check_inbox` queries for open chore records with `to:<my-id>` or `to:<my-base-id>` and the `unread` label. Channel filtering adds `channel:<name>` to the query.
 
 ## Presence System
 
@@ -153,7 +182,7 @@ Full parameter details for each tool:
 
 ## Dolt Server Management
 
-Beads uses Dolt in server mode. The Dolt server must be running for messaging to work.
+Beads uses Dolt in server mode. The Dolt server must be running for task management to work. (Messages use the file store and don't require Dolt.)
 
 ```bash
 bd dolt start       # Start the Dolt server
@@ -179,7 +208,8 @@ bd dolt push         # Push Beads data to remote
 src/
   index.ts           # MCP server entry point
   config.ts          # CLI arg parsing, agent ID generation
-  beads.ts           # Low-level bd CLI interactions (messages, tasks, presence)
+  message-store.ts   # File-based message store (.am/)
+  beads.ts           # Low-level bd CLI interactions (tasks, presence)
   tasks.ts           # Task management logic
   tools/             # One file per MCP tool handler
   cli/

@@ -1,6 +1,6 @@
 # Agent Messenger — Usage Guide
 
-MCP server that lets AI coding agents (Cursor, Claude Code, Codex, Windsurf, Aider, and any MCP-capable tool) message each other within a project.
+MCP server that lets AI coding agents (Cursor, Claude Code, Codex, Windsurf, Aider, and any MCP-capable tool) message each other within a project. Messages use a fast local file store (`.am/`); tasks use Beads for version-controlled persistence.
 
 ## Install
 
@@ -30,7 +30,7 @@ agent-messenger init
 
 **Restart Cursor after upgrading** (Ctrl+Shift+P → "Developer: Reload Window"). The npm update replaces the MCP server files on disk — Cursor needs to restart the server process to pick up the new version.
 
-Your Beads data (messages, tasks, history) is never affected by upgrades. If your Cursor rules or Claude Code skills have changed, `init` updates them and saves the old versions as `.bak` files.
+Your data is never affected by upgrades — messages in `.am/` and tasks in `.beads/` are preserved. If your Cursor rules or Claude Code skills have changed, `init` updates them and saves the old versions as `.bak` files.
 
 ### Init options
 
