@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { execFileSync, execSync } from "node:child_process";
 import { platform } from "node:os";
+import { MessageStore } from "../message-store.js";
 
 interface StatusMessage {
   id: string;
@@ -126,7 +127,32 @@ export async function status(args: string[]): Promise<void> {
     process.exit(1);
   }
 
-  const messages = bdList(beadsDir);
+  const amDir = join(projectRoot, ".am");
+  let messages: StatusMessage[];
+
+  if (existsSync(amDir)) {
+    const store = new MessageStore(amDir);
+    const index = store.query({});
+    messages = index.map((m) => ({
+      id: m.id,
+      title: m.subject,
+      description: undefined,
+      status: m.unread ? "open" : "closed",
+      priority: m.priority === "urgent" ? 0 : 2,
+      issue_type: "message",
+      created_at: m.timestamp,
+      updated_at: m.timestamp,
+      labels: [
+        `to:${m.to}`,
+        `from:${m.from}`,
+        ...(m.unread ? ["unread"] : []),
+        ...(m.channel ? [`channel:${m.channel}`] : []),
+        ...(m.action ? [`action:${m.action}`] : []),
+      ],
+    }));
+  } else {
+    messages = bdList(beadsDir);
+  }
 
   if (messages.length === 0) {
     console.log("\nagent-messenger status");

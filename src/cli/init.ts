@@ -430,6 +430,20 @@ export async function init(args: string[]): Promise<void> {
 
   ensureGitignoreEntry(join(projectRoot, ".gitignore"), ".beads/", opts.dryRun);
 
+  // Create .am/ message store directory
+  const amDir = join(projectRoot, ".am", "messages");
+  if (!opts.dryRun) {
+    mkdirSync(amDir, { recursive: true });
+    const indexPath = join(projectRoot, ".am", "index.json");
+    if (!existsSync(indexPath)) {
+      writeFileSync(indexPath, "[]", "utf-8");
+    }
+    log("✓", "Created .am/ message store");
+  } else {
+    log("📄", "Would create .am/ message store");
+  }
+  ensureGitignoreEntry(join(projectRoot, ".gitignore"), ".am/", opts.dryRun);
+
   // Step 3: Generate MCP configs
   console.log("\nStep 3: Generate MCP configs");
 

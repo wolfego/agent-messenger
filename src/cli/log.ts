@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { execFileSync, execSync } from "node:child_process";
 import { platform } from "node:os";
+import { MessageStore } from "../message-store.js";
 
 interface LogMessage {
   id: string;
@@ -208,7 +209,43 @@ export async function log(args: string[]): Promise<void> {
     process.exit(1);
   }
 
-  // Thread view: show a single conversation tree
+  // Fast path: read from .am/ file store if available
+  const amDir = join(projectRoot, ".am");
+  if (existsSync(amDir) && !opts.thread) {
+    const store = new MessageStore(amDir);
+    const results = store.query({
+      from: opts.agent,
+      channel: opts.channel,
+      limit: opts.limit,
+    });
+
+    if (results.length === 0) {
+      console.log("\nNo messages found.\n");
+      return;
+    }
+
+    const filters: string[] = [];
+    if (opts.agent) filters.push(`agent: ${opts.agent}`);
+    if (opts.channel) filters.push(`channel: ${opts.channel}`);
+    const filterStr = filters.length > 0 ? ` (${filters.join(", ")})` : "";
+    console.log(`\nagent-messenger log${filterStr} — ${results.length} messages`);
+    console.log("=".repeat(60));
+
+    for (const meta of results) {
+      const time = formatTimestamp(meta.timestamp);
+      const unread = meta.unread ? " *" : "";
+      const chTag = meta.channel ? ` #${meta.channel}` : "";
+      const refTag = meta.task_id ? ` [task:${meta.task_id}]` : "";
+      const priority = meta.priority === "urgent" ? " [URGENT]" : "";
+
+      console.log(`${meta.from} -> ${meta.to}  ${time}${unread}${priority}${chTag}${refTag}`);
+      console.log(`  ${meta.subject}  (${meta.id})`);
+      console.log();
+    }
+    return;
+  }
+
+  // Thread view: show a single conversation tree (falls back to Beads for old messages)
   if (opts.thread) {
     const rootId = findRoot(beadsDir, opts.thread);
     const allMsgs = bdList(beadsDir);
