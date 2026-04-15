@@ -31,198 +31,79 @@ describe("message formatting", () => {
     mockExec.mockReset();
   });
 
-  describe("label construction in createMessage", () => {
-    it("includes to, from, and unread labels", async () => {
-      mockExec.mockReturnValue(JSON.stringify({
-        id: "msg-001",
-        title: "Test",
-        status: "open",
-        priority: 2,
-        issue_type: "message",
-        created_at: "2026-04-08T00:00:00Z",
-        updated_at: "2026-04-08T00:00:00Z",
-      }));
+  describe("metadata in MessageStore.create", () => {
+    let storeTmpDir: string;
+    let store: MessageStore;
 
-      const { createMessage } = await import("../src/beads.js");
-      const config = makeConfig({ agentId: "claude-code-a3f2" });
-
-      createMessage(config, {
-        to: "cursor-opus",
-        subject: "Hello",
-        body: "Test body",
-      });
-
-      const callArgs = mockExec.mock.calls[0]![1] as string[];
-      const labelsIdx = callArgs.indexOf("--labels");
-      const labels = callArgs[labelsIdx + 1]!;
-
-      expect(labels).toContain("to:cursor-opus");
-      expect(labels).toContain("from:claude-code-a3f2");
-      expect(labels).toContain("unread");
+    beforeEach(() => {
+      storeTmpDir = mkdtempSync(join(tmpdir(), "am-meta-test-"));
+      store = new MessageStore(storeTmpDir);
     });
 
-    it("includes action label when action is provided", async () => {
-      mockExec.mockReturnValue(JSON.stringify({
-        id: "msg-002",
-        title: "Review",
-        status: "open",
-        priority: 2,
-        issue_type: "message",
-        created_at: "2026-04-08T00:00:00Z",
-        updated_at: "2026-04-08T00:00:00Z",
-      }));
+    afterEach(() => {
+      rmSync(storeTmpDir, { recursive: true, force: true });
+    });
 
-      const { createMessage } = await import("../src/beads.js");
-      const config = makeConfig();
+    it("stores to, from, and unread metadata", () => {
+      const meta = store.create({
+        to: "cursor-opus", from: "claude-code-a3f2",
+        subject: "Hello", body: "Test body",
+      });
+      expect(meta.to).toBe("cursor-opus");
+      expect(meta.from).toBe("claude-code-a3f2");
+      expect(meta.unread).toBe(true);
+    });
 
-      createMessage(config, {
-        to: "cursor-opus",
-        subject: "Review this",
-        body: "Please review",
+    it("stores action when provided", () => {
+      const meta = store.create({
+        to: "cursor-opus", from: "claude-code",
+        subject: "Review this", body: "Please review",
         action: "review",
       });
-
-      const callArgs = mockExec.mock.calls[0]![1] as string[];
-      const labelsIdx = callArgs.indexOf("--labels");
-      const labels = callArgs[labelsIdx + 1]!;
-
-      expect(labels).toContain("action:review");
+      expect(meta.action).toBe("review");
     });
 
-    it("includes channel label when channel is set", async () => {
-      mockExec.mockReturnValue(JSON.stringify({
-        id: "msg-003",
-        title: "Design",
-        status: "open",
-        priority: 2,
-        issue_type: "message",
-        created_at: "2026-04-08T00:00:00Z",
-        updated_at: "2026-04-08T00:00:00Z",
-      }));
-
-      const { createMessage } = await import("../src/beads.js");
-      const config = makeConfig({ channel: "design-review" });
-
-      createMessage(config, {
-        to: "cursor-opus",
-        subject: "Design feedback",
-        body: "Here is my feedback",
+    it("stores channel when set", () => {
+      const meta = store.create({
+        to: "cursor-opus", from: "claude-code",
+        subject: "Design feedback", body: "Here is my feedback",
+        channel: "design-review",
       });
-
-      const callArgs = mockExec.mock.calls[0]![1] as string[];
-      const labelsIdx = callArgs.indexOf("--labels");
-      const labels = callArgs[labelsIdx + 1]!;
-
-      expect(labels).toContain("channel:design-review");
+      expect(meta.channel).toBe("design-review");
     });
 
-    it("does not include channel label when no channel is set", async () => {
-      mockExec.mockReturnValue(JSON.stringify({
-        id: "msg-004",
-        title: "No channel",
-        status: "open",
-        priority: 2,
-        issue_type: "message",
-        created_at: "2026-04-08T00:00:00Z",
-        updated_at: "2026-04-08T00:00:00Z",
-      }));
-
-      const { createMessage } = await import("../src/beads.js");
-      const config = makeConfig({ channel: undefined });
-
-      createMessage(config, {
-        to: "cursor-opus",
-        subject: "No channel",
-        body: "Message without channel",
+    it("channel is null when not set", () => {
+      const meta = store.create({
+        to: "cursor-opus", from: "claude-code",
+        subject: "No channel", body: "Message without channel",
       });
-
-      const callArgs = mockExec.mock.calls[0]![1] as string[];
-      const labelsIdx = callArgs.indexOf("--labels");
-      const labels = callArgs[labelsIdx + 1]!;
-
-      expect(labels).not.toContain("channel:");
+      expect(meta.channel).toBeNull();
     });
 
-    it("sets priority 0 for urgent messages", async () => {
-      mockExec.mockReturnValue(JSON.stringify({
-        id: "msg-005",
-        title: "Urgent",
-        status: "open",
-        priority: 0,
-        issue_type: "message",
-        created_at: "2026-04-08T00:00:00Z",
-        updated_at: "2026-04-08T00:00:00Z",
-      }));
-
-      const { createMessage } = await import("../src/beads.js");
-      const config = makeConfig();
-
-      createMessage(config, {
-        to: "cursor-opus",
-        subject: "Urgent",
-        body: "This is urgent",
+    it("stores urgent priority", () => {
+      const meta = store.create({
+        to: "cursor-opus", from: "claude-code",
+        subject: "Urgent", body: "This is urgent",
         priority: "urgent",
       });
-
-      const callArgs = mockExec.mock.calls[0]![1] as string[];
-      const priorityIdx = callArgs.indexOf("--priority");
-      expect(callArgs[priorityIdx + 1]).toBe("0");
+      expect(meta.priority).toBe("urgent");
     });
 
-    it("sets priority 2 for normal messages", async () => {
-      mockExec.mockReturnValue(JSON.stringify({
-        id: "msg-006",
-        title: "Normal",
-        status: "open",
-        priority: 2,
-        issue_type: "message",
-        created_at: "2026-04-08T00:00:00Z",
-        updated_at: "2026-04-08T00:00:00Z",
-      }));
-
-      const { createMessage } = await import("../src/beads.js");
-      const config = makeConfig();
-
-      createMessage(config, {
-        to: "cursor-opus",
-        subject: "Normal",
-        body: "Normal priority",
+    it("defaults to normal priority", () => {
+      const meta = store.create({
+        to: "cursor-opus", from: "claude-code",
+        subject: "Normal", body: "Normal priority",
       });
-
-      const callArgs = mockExec.mock.calls[0]![1] as string[];
-      const priorityIdx = callArgs.indexOf("--priority");
-      expect(callArgs[priorityIdx + 1]).toBe("2");
+      expect(meta.priority).toBe("normal");
     });
 
-    it("appends context files to body", async () => {
-      mockExec.mockReturnValue(JSON.stringify({
-        id: "msg-007",
-        title: "With files",
-        status: "open",
-        priority: 2,
-        issue_type: "message",
-        created_at: "2026-04-08T00:00:00Z",
-        updated_at: "2026-04-08T00:00:00Z",
-      }));
-
-      const { createMessage } = await import("../src/beads.js");
-      const config = makeConfig();
-
-      createMessage(config, {
-        to: "cursor-opus",
-        subject: "With files",
-        body: "Check these files",
-        contextFiles: ["src/config.ts", "src/beads.ts"],
+    it("stores context_files metadata", () => {
+      const meta = store.create({
+        to: "cursor-opus", from: "claude-code",
+        subject: "With files", body: "Check these files",
+        context_files: ["src/config.ts", "src/beads.ts"],
       });
-
-      const callArgs = mockExec.mock.calls[0]![1] as string[];
-      const descIdx = callArgs.indexOf("--description");
-      const desc = callArgs[descIdx + 1]!;
-
-      expect(desc).toContain("Check these files");
-      expect(desc).toContain("Context files:");
-      expect(desc).toContain("- src/config.ts");
-      expect(desc).toContain("- src/beads.ts");
+      expect(meta.context_files).toEqual(["src/config.ts", "src/beads.ts"]);
     });
   });
 
