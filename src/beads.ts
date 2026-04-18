@@ -1,5 +1,8 @@
-import { execFileSync } from "node:child_process";
+import { execFileSync, execFile } from "node:child_process";
+import { promisify } from "node:util";
 import type { Config } from "./config.js";
+
+const execFileAsync = promisify(execFile);
 
 export interface BeadsMessage {
   id: string;
@@ -61,6 +64,35 @@ function bdExec(config: Config, args: string[]): string {
 
 function bdJson<T>(config: Config, args: string[]): T {
   const raw = bdExec(config, [...args, "--json"]);
+  return JSON.parse(raw) as T;
+}
+
+async function bdExecNonBlocking(config: Config, args: string[]): Promise<string> {
+  const env: Record<string, string> = { ...process.env } as Record<string, string>;
+  if (config.beadsDir) {
+    env["BEADS_DIR"] = config.beadsDir;
+  }
+
+  try {
+    const { stdout } = await execFileAsync("bd", args, {
+      encoding: "utf-8",
+      timeout: 30_000,
+      env,
+      windowsHide: true,
+    });
+    return stdout;
+  } catch (err: unknown) {
+    const execErr = err as { stderr?: string; stdout?: string; message?: string };
+    const stderr = execErr.stderr ?? "";
+    const stdout = execErr.stdout ?? "";
+    throw new Error(
+      `bd ${args.join(" ")} failed: ${stderr || stdout || execErr.message}`
+    );
+  }
+}
+
+async function bdJsonNonBlocking<T>(config: Config, args: string[]): Promise<T> {
+  const raw = await bdExecNonBlocking(config, [...args, "--json"]);
   return JSON.parse(raw) as T;
 }
 
@@ -214,16 +246,17 @@ function isStale(record: BeadsMessage): boolean {
 /**
  * Close ALL stale presence records (any base ID) that haven't been
  * updated within the threshold. Called on startup.
+ * Async to avoid blocking the event loop during the MCP handshake.
  */
-export function cleanStalePresence(config: Config): void {
+export async function cleanStalePresence(config: Config): Promise<void> {
   try {
-    const all = bdJson<BeadsMessage[]>(config, [
+    const all = await bdJsonNonBlocking<BeadsMessage[]>(config, [
       "list", "--type", "chore", "--label", "kind:presence", "--status", "open",
     ]);
     for (const rec of all) {
       if (isStale(rec)) {
         try {
-          bdExec(config, ["close", rec.id, "--reason", "stale — no heartbeat"]);
+          await bdExecNonBlocking(config, ["close", rec.id, "--reason", "stale — no heartbeat"]);
         } catch { /* best-effort */ }
       }
     }
@@ -234,19 +267,20 @@ export function cleanStalePresence(config: Config): void {
  * Write a presence record for this agent session.
  * If one already exists for this agentId, update it; otherwise create.
  * Starts a periodic heartbeat to keep the record fresh.
+ * Async to avoid blocking the event loop during the MCP handshake.
  */
-export function registerPresence(config: Config): void {
+export async function registerPresence(config: Config): Promise<void> {
   const labels = [`kind:presence`, `agent:${config.agentId}`, `base:${config.baseId}`, `env:${config.env}`];
   if (config.channel) labels.push(`channel:${config.channel}`);
 
   try {
-    const existing = bdJson<BeadsMessage[]>(config, [
+    const existing = await bdJsonNonBlocking<BeadsMessage[]>(config, [
       "list", "--type", "chore", "--label", `kind:presence,agent:${config.agentId}`, "--status", "open",
     ]);
 
     if (existing.length > 0) {
       presenceRecordId = existing[0]!.id;
-      bdExec(config, [
+      await bdExecNonBlocking(config, [
         "update", presenceRecordId,
         "--append-notes", `heartbeat ${new Date().toISOString()}`,
       ]);
@@ -255,7 +289,7 @@ export function registerPresence(config: Config): void {
     }
   } catch { /* fall through to create */ }
 
-  const result = bdJson<BeadsMessage>(config, [
+  const result = await bdJsonNonBlocking<BeadsMessage>(config, [
     "create", `${config.agentId} online`,
     "--type", "chore",
     "--labels", labels.join(","),
@@ -268,10 +302,10 @@ export function registerPresence(config: Config): void {
 
 function startHeartbeat(config: Config): void {
   if (heartbeatTimer) return;
-  heartbeatTimer = setInterval(() => {
+  heartbeatTimer = setInterval(async () => {
     if (!presenceRecordId) return;
     try {
-      bdExec(config, [
+      await bdExecNonBlocking(config, [
         "update", presenceRecordId,
         "--append-notes", `heartbeat ${new Date().toISOString()}`,
       ]);

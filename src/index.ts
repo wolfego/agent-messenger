@@ -36,7 +36,7 @@ if (config.messageDir) {
 }
 
 const server = new McpServer(
-  { name: "agent-messenger", version: "0.2.2" },
+  { name: "agent-messenger", version: "0.2.3" },
   {
     capabilities: { tools: {} },
     instructions: `Agent messenger for inter-agent communication. You are ${config.agentId} (base: ${config.baseId}, env: ${config.env})${config.channel ? ` on channel '${config.channel}'` : ""}. Use send_message to contact other agents, check_inbox to see messages addressed to you. If multiple agent pairs are active in this project, use set_channel to isolate conversations. On your FIRST turn in a new conversation, call set_identity with a short name reflecting your task (e.g. 'cc-web-ui', 'cc-auth-tests'). This helps other agents and the user identify you in list_agents.`,
@@ -213,19 +213,13 @@ async function main() {
   process.stderr.write(`agent-messenger MCP started (agent: ${config.agentId}${beadsInfo})\n`);
 
   if (config.beadsDir) {
-    // Defer presence registration to avoid blocking the event loop during
-    // the MCP handshake. execFileSync in these functions would prevent the
-    // transport from processing the client's initialize message, causing
-    // a connection timeout in CC/Cursor.
-    setTimeout(() => {
-      try {
-        cleanStalePresence(config);
-        registerPresence(config);
-        process.stderr.write(`  presence registered for ${config.agentId}\n`);
-      } catch (err) {
-        process.stderr.write(`  warning: presence registration failed: ${err}\n`);
-      }
-    }, 100);
+    // Fire-and-forget: presence uses async child_process.execFile so the
+    // event loop stays free to handle MCP requests (tools/list, etc.)
+    // while bd/Dolt spin up in the background.
+    cleanStalePresence(config)
+      .then(() => registerPresence(config))
+      .then(() => process.stderr.write(`  presence registered for ${config.agentId}\n`))
+      .catch((err) => process.stderr.write(`  warning: presence registration failed: ${err}\n`));
 
     process.on("SIGINT", () => { deregisterPresence(config); process.exit(0); });
     process.on("SIGTERM", () => { deregisterPresence(config); process.exit(0); });
